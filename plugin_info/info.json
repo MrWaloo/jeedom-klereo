@@ -1,0 +1,30 @@
+{
+	"id" : "klereo",
+	"name" : "Klereo",
+	"description" : {
+		"fr_FR": "Communication avec le module Klereo connect pour gérer votre piscine",
+        "en_US": "Communication with the Klereo connect module to manage your pool",
+        "de_DE": "Kommunikation mit dem Klereo connect Modul um Ihr Pool zu verwalten"
+	},
+	"licence" : "GPL",
+	"author" : "Michel_F",
+	"require" : "4.2",
+	"category" : "wellness",
+	"hasDependency" : true,
+	"hasOwnDeamon" : true,
+	"maxDependancyInstallTime" : 45,
+	"changelog" : "",
+	"documentation" : "",
+	"changelog_beta" : "",
+	"documentation_beta" : "",
+	"language" : ["fr_FR"],
+    "compatibility": [
+        "miniplus",
+        "smart",
+        "rpi",
+        "docker",
+        "diy",
+        "mobile",
+        "v4"
+    ]
+}
