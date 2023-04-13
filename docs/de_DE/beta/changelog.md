@@ -1,4 +1,4 @@
-# Changelog Klereo
+# Changelog Klereo bêta
 
 ## TODO
 

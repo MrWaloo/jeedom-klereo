@@ -1,0 +1,29 @@
+---
+languages: [fr_FR]
+baseurl: "/"
+sass:
+  sass_dir: css
+  style: compressed
+permalink: /404.html
+markdown: kramdown
+kramdown:
+  input: GFM
+  hard_wrap: false
+  parse_block_html: true
+  syntax_highlighter: rouge
+highlighter: rouge
+gems:
+- jekyll-paginate
+- jekyll-seo-tag
+exclude:
+- vendor
+plugins:
+- jekyll-seo-tag
+title: "Jeedom - Klereo"
+description: "Page de documentation du plugin Jeedom 'Klereo'."
+author: "Michel_F"
+image: https://mrwaloo.github.io/jeedom-klereo/jeedom-klereo.png
+social:
+  name: Michel_F
+  links:
+    - https://mrwaloo.github.io/jeedom-klereo
