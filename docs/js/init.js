@@ -95,6 +95,8 @@ for(var i in docMenu){
     }
   }
 }
+//html += '<li class="small"><small>Jeedom: Free, Opened, Cloudless, Multiprotocol solution since 2014</small></li>'
+$('#ul_menu').empty().html(html);
 
 function genText(_menu,_lang){
   if(_menu.icon){
