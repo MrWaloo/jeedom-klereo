@@ -5,12 +5,12 @@ var docMenu = [
     fr_FR : "Présentation",
     en_US : "Presentation",
     de_DE : "Präsentation",
-    link : "/#LANG#/#VERSION#/index"
+    link : "/jeedom-klereo/#LANG#/#VERSION#/index"
   },{
     fr_FR : "Changelog",
     en_US : "Changelog",
     de_DE : "Changelog",
-    link : "/#LANG#/#VERSION#/changelog"
+    link : "/jeedom-klereo/#LANG#/#VERSION#/changelog"
   },{
     divider : true
   }
@@ -95,8 +95,6 @@ for(var i in docMenu){
     }
   }
 }
-html += '<li class="small"><small>Jeedom: Free, Opened, Cloudless, Multiprotocol solution since 2014</small></li>'
-$('#ul_menu').empty().html(html);
 
 function genText(_menu,_lang){
   if(_menu.icon){
