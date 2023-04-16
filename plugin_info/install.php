@@ -18,23 +18,15 @@
 
 require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
 
-function mymodbus_update() {
-    
-	do {
-		$cron = cron::byClassAndFunction('mymodbus', 'cronDaily');
-		if (is_object($cron))
-            $cron->remove(true);
-		else
-            break;
-	} while (true);
-    
-}
 
 /*
-    function mymodbus_install() {}
-        
-        
-    function mymodbus_remove() {}
+    function klereo_update() {}
+    
+    
+    function klereo_install() {}
+    
+    
+    function klereo_remove() {}
  */
 
 ?>
