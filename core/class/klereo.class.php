@@ -54,7 +54,9 @@ class klereo extends eqLogic {
 
   // Fonction exécutée automatiquement toutes les 10 minutes par Jeedom
   public static function cron10() {
-    
+    foreach (klereo::getPools() as $pool_id => $pool_name) {
+      $details = self::getPoolDetails($pool_id);
+    }
   }
   
   /*
@@ -83,10 +85,7 @@ class klereo extends eqLogic {
    */
   
   // public static function deamon_info() { }
-  
   // public static function deamon_start() { }
-  
-  
   
   /*   * *********************Méthodes d'instance************************* */
   
@@ -208,6 +207,7 @@ class klereo extends eqLogic {
   public static function getIndex() {
     $config_getIndex_dt = config::byKey('getIndex_dt', __CLASS__, '0000-01-01 00:00:00');
     $expire_dt = strtotime('+24 hours ' . $config_getIndex_dt);
+    //$expire_dt = strtotime('+1 minute ' . $config_getIndex_dt); // DEBUG
     log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / strtotime(self::now()) >= $expire_dt = *' . (strtotime(self::now()) >= $expire_dt ? 'true' : 'false') . '*');
     if (strtotime(self::now()) >= $expire_dt || config::byKey('getIndex', __CLASS__, '') === '') {
       if (config::byKey('login', __CLASS__, '') === '' || config::byKey('password', __CLASS__, '') === '')
@@ -223,9 +223,7 @@ class klereo extends eqLogic {
       $response = self::curl_request($curl_setopt_array, __FUNCTION__);
       $body = $response[1];
       if (isset($body['response']) && is_array($body['response'])) {
-        $getIndex = array();
-        foreach ($body['response'] as $pool)
-          $getIndex[$pool['idSystem']] = $pool['poolNickname'];
+        $getIndex = $body['response'];
         config::save('getIndex_dt', self::now(), __CLASS__);
         config::save('getIndex', $getIndex, __CLASS__);
         return $getIndex;
@@ -236,11 +234,11 @@ class klereo extends eqLogic {
     return config::byKey('getIndex', __CLASS__);
   }
   
-  public static function getPoolsDetails($_pool_id) {
-    $config_getPoolsDetails_dt = config::byKey('getPoolsDetails_dt', __CLASS__, '0000-01-01 00:00:00');
+  public static function getPoolDetails($_pool_id) {
+    $config_getPoolsDetails_dt = config::byKey('getPoolDetails_dt', __CLASS__, '0000-01-01 00:00:00');
     $expire_dt = strtotime('+9 minutes 50 seconds ' . $config_getPoolsDetails_dt);
     log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / strtotime(self::now()) >= $expire_dt = *' . (strtotime(self::now()) >= $expire_dt ? 'true' : 'false') . '*');
-    if (strtotime(self::now()) >= $expire_dt || config::byKey('getPoolsDetails', __CLASS__, '') === '') {
+    if (strtotime(self::now()) >= $expire_dt || config::byKey('getPoolDetails', __CLASS__, '') === '') {
       if (config::byKey('login', __CLASS__, '') === '' || config::byKey('password', __CLASS__, '') === '')
         throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Les informations de connexions doivent être renseignées dans la configuration du plugin Klereo', __FILE__));
       $post_data = array(
@@ -248,7 +246,7 @@ class klereo extends eqLogic {
         'lang'    => substr(translate::getLanguage(), 0, 2)
       );
       $curl_setopt_array = array(
-        CURLOPT_URL         => self::$_API_ROOT . 'GetPoolsDetails.php',
+        CURLOPT_URL         => self::$_API_ROOT . 'GetPoolDetails.php',
         CURLOPT_POST        => true,
         CURLOPT_HTTPHEADER  => array(
           'User-Agent: ' . self::$_USER_AGENT,
@@ -259,8 +257,8 @@ class klereo extends eqLogic {
       $body = $response[1];
       if (isset($body['response']) && is_array($body['response'])) {
         $getPoolsDetails = $body['response'];
-        config::save('getPoolsDetails_dt', self::now(), __CLASS__);
-        config::save('getPoolsDetails', $getPoolsDetails, __CLASS__);
+        config::save('getPoolDetails_dt', self::now(), __CLASS__);
+        config::save('getPoolDetails', $getPoolsDetails, __CLASS__);
         return $getPoolsDetails;
       } else
         throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de la réception des détails du bassin', __FILE__));
@@ -269,9 +267,13 @@ class klereo extends eqLogic {
     return config::byKey('getPoolsDetails', __CLASS__);
   }
   
-  //public static function getDeamonState() { }
-  
-  //public static function getDeamonLaunchable($eqConfig='') { }
+  public static function getPools() {
+    $getIndex = self::getIndex();
+    $getPools = array();
+    foreach ($getIndex as $pool)
+      $getPools[$pool['idSystem']] = $pool['poolNickname'];
+    return $getPools;
+  }
   
 }
 

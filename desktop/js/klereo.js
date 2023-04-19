@@ -33,15 +33,41 @@ $('.bt_showExpressionTest').off('click').on('click', function () {
 });
 
 function printEqLogic(_eqLogic) {
+  $('.eqLogicAttr[data-l1key=configuration][data-l2key=eqPoolId]').off().on('change', function () {
+    if ($(this).val() != '' && !is_null($(this).val())) {
+      jeedom.config.load({
+        plugin: "klereo",
+        configuration : "getIndex",
+        error: function (error) {
+          $('#div_alert').showAlert({message: error.message, level: 'danger'});
+        },
+        success: function (getIndex) {
+          for (let pool of getIndex) {
+            console.log('poolNickname = ' + pool.poolNickname);
+            for (param in pool) {
+              if (param.endsWith('Capteur') && pool[param] != -1) {
+                console.log(param);
+                for (let probe of pool.probes) {
+                  if (probe.index == pool[param]) {
+                    console.log(' value: ' + probe.directValue);
+                    // <<<<<<<<<<<<<<------------------------------------------------------------------------------------------------------->>>>>>>>>>>>>>>
+                    // <<<<<<<<<<<<<<------------------------------------------------------------------------------------------------------->>>>>>>>>>>>>>>
+                    // <<<<<<<<<<<<<<------------------------------------------------------------------------------------------------------->>>>>>>>>>>>>>>
+                    // <<<<<<<<<<<<<<------------------------------------------------------------------------------------------------------->>>>>>>>>>>>>>>
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+  });
+  
   // load values
   $('#eqLogic').setValues(_eqLogic, '.eqLogicAttr');
 }
 
-$('.eqLogicAttr[data-l1key=configuration][data-l2key=eqPoolId]').off().on('change', function () {
-  if ($(this).val() != '') {
-    
-  }
-});
 
 /*
  * Fonction pour l'ajout de commande, appelée automatiquement par plugin.template

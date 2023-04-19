@@ -140,7 +140,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
                   <select class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="eqPoolId">
                     <option disabled selected value>-- {{Choisir une piscine}} --</option>
                     <?php
-                    foreach (klereo::getIndex() as $pool_id => $pool_name)
+                    foreach (klereo::getPools() as $pool_id => $pool_name)
                       echo '<option value="' . $pool_id . '">' . $pool_name . '</option>';
                     ?>
                   </select>
