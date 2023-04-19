@@ -128,6 +128,13 @@ class klereo extends eqLogic {
     return date('Y-m-d H:i:s');
   }
   
+  public static function setopt_merge($arr1, $arr2) {
+    $ret = $arr1;
+    foreach ($arr2 as $k => $v)
+      $ret[$k] = $v;
+    return $ret;
+  }
+  
   public static function curl_request($_curl_setopt_array = null, $_function_name = '') {
     if (is_null($_curl_setopt_array))
       throw new Exception(__CLASS__ . '::curl_request&nbsp;:</br>' . __('Paramètres insuffisants', __FILE__));
@@ -141,9 +148,9 @@ class klereo extends eqLogic {
       CURLOPT_SSL_VERIFYHOST  => 2,
       CURLOPT_HEADER          => true
     );
-    $curl_stopt_array = array_merge($default_setopt_array, $_curl_setopt_array)
+    $curl_stopt_array = self::setopt_merge($default_setopt_array, $_curl_setopt_array);
     $ch = curl_init();
-    curl_setopt($ch, $curl_stopt_array);
+    curl_setopt_array($ch, $curl_stopt_array);
     $page_content = curl_exec($ch);
     log::add('klereo', 'debug', __CLASS__ . '::' . $_function_name . ' / $page_content = *' . $page_content . '*');
     $curl_info = curl_getinfo($ch);
@@ -158,18 +165,19 @@ class klereo extends eqLogic {
     $header_size = $curl_info['header_size'];
     $header = substr($page_content, 0, $header_size);
     $body = substr($page_content, $header_size);  
-    $response = json_decode($body);
+    $response = json_decode($body, true);
     if (!is_array($response) || !isset($response['status']))
       throw new Exception(__CLASS__ . '::' . $_function_name . '&nbsp;:</br>' . __('Réponse inatendue&nbsp;: ', __FILE__) . $body);
     if ($response['status'] != 'ok')
-      throw new Exception(__CLASS__ . '::' . $_function_name . '&nbsp;:</br>' . __('Echec de l\'authentification&nbsp;: ', __FILE__) . (isset($response['detail']) ? $response['detail'] : __('pas de détail retourné', __FILE__)));
+      throw new Exception(__CLASS__ . '::' . $_function_name . '&nbsp;:</br>' . __('Echec de l\'authentification&nbsp;: ', __FILE__) . (isset($response->detail) ? $response->detail : __('pas de détail retourné', __FILE__)));
+    log::add('klereo', 'debug', __CLASS__ . '::' . $_function_name . ' / curl_request return OK');
     return array($header, $response);
   }
   
   public static function getJwtToken() {
-    $jwt_login_dt = config::byKey('jwt::login_dt', __CLASS__, '0000-01-01 00:00:00');
-    $expire_dt = strtotime('+60 minutes ' . $jwt_login_dt);
-    if (self::now() >= $expire_dt || config::byKey('jwt::Authorization', __CLASS__, '') === '') {
+    $config_jwt_login_dt = config::byKey('jwt::login_dt', __CLASS__, '0000-01-01 00:00:00');
+    $expire_dt = strtotime('+55 minutes ' . $config_jwt_login_dt);
+    if (strtotime(self::now()) >= $expire_dt || config::byKey('jwt::Authorization', __CLASS__, '') === '') {
       if (config::byKey('login', __CLASS__, '') === '' || config::byKey('password', __CLASS__, '') === '')
         throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Les informations de connexions doivent être renseignées dans la configuration du plugin Klereo', __FILE__));
       $post_data = array(
@@ -185,7 +193,9 @@ class klereo extends eqLogic {
       $response = self::curl_request($curl_setopt_array, __FUNCTION__);
       $header = $response[0];
       $body = $response[1];
-      preg_match('/.*?^(Authorization\: Bearer .*?)$.*/ms', $header, $matches);
+      log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $header = *' . $header . '*');
+      log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $body = *' . json_encode($body) . '*');
+      preg_match('/.*?^(Authorization\: Bearer \S*?)\s*$.*/ms', $header, $matches);
       $jwt_from_header = $matches[1];
       config::save('jwt::login_dt', self::now(), __CLASS__);
       config::save('jwt::Authorization', $jwt_from_header, __CLASS__);
@@ -196,30 +206,67 @@ class klereo extends eqLogic {
   }
   
   public static function getIndex() {
-    $getIndex_dt = config::byKey('getIndex_dt', __CLASS__, '0000-01-01 00:00:00');
-    $expire_dt = strtotime('+24 hours ' . $getIndex_dt);
-    if (self::now() >= $expire_dt || config::byKey('getIndex', __CLASS__, '') === '') {
+    $config_getIndex_dt = config::byKey('getIndex_dt', __CLASS__, '0000-01-01 00:00:00');
+    $expire_dt = strtotime('+24 hours ' . $config_getIndex_dt);
+    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / strtotime(self::now()) >= $expire_dt = *' . (strtotime(self::now()) >= $expire_dt ? 'true' : 'false') . '*');
+    if (strtotime(self::now()) >= $expire_dt || config::byKey('getIndex', __CLASS__, '') === '') {
       if (config::byKey('login', __CLASS__, '') === '' || config::byKey('password', __CLASS__, '') === '')
         throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Les informations de connexions doivent être renseignées dans la configuration du plugin Klereo', __FILE__));
       $curl_setopt_array = array(
         CURLOPT_URL         => self::$_API_ROOT . 'GetIndex.php',
+        CURLOPT_POST        => false,
         CURLOPT_HTTPHEADER  => array(
           'User-Agent: ' . self::$_USER_AGENT,
           self::getJwtToken()
         )
       );
       $response = self::curl_request($curl_setopt_array, __FUNCTION__);
-      $getIndex = $response[1];
-      if (isset($getIndex['response']) && is_array($getIndex['response'])) {
+      $body = $response[1];
+      if (isset($body['response']) && is_array($body['response'])) {
+        $getIndex = array();
+        foreach ($body['response'] as $pool)
+          $getIndex[$pool['idSystem']] = $pool['poolNickname'];
         config::save('getIndex_dt', self::now(), __CLASS__);
-        config::save('getIndex', $getIndex['response'], __CLASS__);
-        return $getIndex['response'];
+        config::save('getIndex', $getIndex, __CLASS__);
+        return $getIndex;
       } else
         throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de la réception de la liste des bassins', __FILE__));
-      
     }
     
-    return json_decode(config::byKey('getIndex', __CLASS__));
+    return config::byKey('getIndex', __CLASS__);
+  }
+  
+  public static function getPoolsDetails($_pool_id) {
+    $config_getPoolsDetails_dt = config::byKey('getPoolsDetails_dt', __CLASS__, '0000-01-01 00:00:00');
+    $expire_dt = strtotime('+9 minutes 50 seconds ' . $config_getPoolsDetails_dt);
+    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / strtotime(self::now()) >= $expire_dt = *' . (strtotime(self::now()) >= $expire_dt ? 'true' : 'false') . '*');
+    if (strtotime(self::now()) >= $expire_dt || config::byKey('getPoolsDetails', __CLASS__, '') === '') {
+      if (config::byKey('login', __CLASS__, '') === '' || config::byKey('password', __CLASS__, '') === '')
+        throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Les informations de connexions doivent être renseignées dans la configuration du plugin Klereo', __FILE__));
+      $post_data = array(
+        'poolID'  => $_pool_id,
+        'lang'    => substr(translate::getLanguage(), 0, 2)
+      );
+      $curl_setopt_array = array(
+        CURLOPT_URL         => self::$_API_ROOT . 'GetPoolsDetails.php',
+        CURLOPT_POST        => true,
+        CURLOPT_HTTPHEADER  => array(
+          'User-Agent: ' . self::$_USER_AGENT,
+          self::getJwtToken()
+        )
+      );
+      $response = self::curl_request($curl_setopt_array, __FUNCTION__);
+      $body = $response[1];
+      if (isset($body['response']) && is_array($body['response'])) {
+        $getPoolsDetails = $body['response'];
+        config::save('getPoolsDetails_dt', self::now(), __CLASS__);
+        config::save('getPoolsDetails', $getPoolsDetails, __CLASS__);
+        return $getPoolsDetails;
+      } else
+        throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de la réception des détails du bassin', __FILE__));
+    }
+    
+    return config::byKey('getPoolsDetails', __CLASS__);
   }
   
   //public static function getDeamonState() { }

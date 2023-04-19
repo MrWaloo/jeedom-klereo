@@ -2,7 +2,7 @@
 if (!isConnect('admin')) {
 	throw new Exception('{{401 - Accès non autorisé}}');
 }
-$plugin = plugin::byId('mymodbus');
+$plugin = plugin::byId('klereo');
 sendVarToJS('eqType', $plugin->getId());
 $eqLogics = eqLogic::byType($plugin->getId());
 
@@ -33,7 +33,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
     <legend><i class="fas fa-table"></i> {{Mes équipements}}</legend>
     <?php
     if (count($eqLogics) == 0) {
-      echo '<br><div class="text-center" style="font-size:1.2em;font-weight:bold;">{{Aucun équipement MyModbus trouvé, cliquer sur "Ajouter" pour commencer}}</div>';
+      echo '<br><div class="text-center" style="font-size:1.2em;font-weight:bold;">{{Aucun équipement Klereo trouvé, cliquer sur "Ajouter" pour commencer}}</div>';
     } else {
       // Champ de recherche
       echo '<div class="input-group" style="margin:5px;">';
@@ -50,7 +50,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
         echo '<div class="eqLogicDisplayCard cursor '.$opacity.'" data-eqLogic_id="' . $eqLogic->getId() . '">';
         $alternateImg = $eqLogic->getConfiguration('eqProtocol');
         if (file_exists(dirname(__FILE__) . '/../../desktop/images/' . $alternateImg .'_icon.png')) {
-          echo '<img class="lazy" src="plugins/mymodbus/desktop/images/' . $alternateImg .'_icon.png"/>';
+          echo '<img class="lazy" src="plugins/klereo/desktop/images/' . $alternateImg .'_icon.png"/>';
         } else {	
           echo '<img src="' . $plugin->getPathImgIcon() . '"/>';
         }
@@ -133,20 +133,20 @@ $eqLogics = eqLogic::byType($plugin->getId());
               </div>
               
               <!--   ***********************************  -->
-              <!--
               <legend><i class="fa fa-list-alt"></i> {{Configuration :}}</legend>
               <div class="form-group">
-                <label class="col-sm-4 control-label">{{Protocol de connexion}}</label>
+                <label class="col-sm-4 control-label">{{Piscine}}</label>
                 <div class="col-sm-6">
-                  <select class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="eqProtocol">
-                    <option disabled selected value>-- {{Choisir un protocol de connexion}} --</option>
+                  <select class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="eqPoolId">
+                    <option disabled selected value>-- {{Choisir une piscine}} --</option>
                     <?php
-                    //foreach (mymodbus::supportedProtocols() as $protocol)
-                    //  echo '<option value="' . $protocol . '">' . $protocol . '</option>';
+                    foreach (klereo::getIndex() as $pool_id => $pool_name)
+                      echo '<option value="' . $pool_id . '">' . $pool_name . '</option>';
                     ?>
                   </select>
                 </div>
               </div>
+              <!--
               <div class="form-group">
                 <label class="col-sm-4 control-label"></label>
                 <div class="col-sm-6">
@@ -219,6 +219,6 @@ $eqLogics = eqLogic::byType($plugin->getId());
 </div><!-- /.row row-overflow -->
 
 <?php
-include_file('desktop', 'mymodbus', 'js', 'mymodbus');
+include_file('desktop', 'klereo', 'js', 'klereo');
 include_file('core', 'plugin.template', 'js');
 ?>
