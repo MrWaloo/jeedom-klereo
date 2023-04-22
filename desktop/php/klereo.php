@@ -30,7 +30,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
         <span>{{Documentation}}</span>
       </div>
     </div>
-    <legend><i class="fas fa-table"></i> {{Mes équipements}}</legend>
+    <legend><i class="fas fa-swimming-pool"></i>{{Mes piscines Klereo}}</legend>
     <?php
     if (count($eqLogics) == 0) {
       echo '<br><div class="text-center" style="font-size:1.2em;font-weight:bold;">{{Aucun équipement Klereo trouvé, cliquer sur "Ajouter" pour commencer}}</div>';
@@ -201,11 +201,10 @@ $eqLogics = eqLogic::byType($plugin->getId());
           <table id="table_cmd" class="table table-bordered table-condensed">
             <thead>
               <tr>
-                <th class="hidden-xs" style="min-width:50px;width:70px;">ID</th>
+                <th class="hidden-xs" style="min-width:70px;width:90px;">ID</th>
                 <th style="min-width:100px;width:300px;">{{Nom}}</th>
                 <th style="min-width:80px;">{{Valeur}}</th>
-                <th style="width:100px;">{{Type}}</th>
-                <th style="min-width:300px;width:310px;">{{Options}}</th>
+                <th style="min-width:360px;width:380px;">{{Options}}</th>
                 <th style="width:15px;">&nbsp;</th>
               </tr>
             </thead>

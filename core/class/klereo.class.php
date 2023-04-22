@@ -53,9 +53,23 @@ class klereo extends eqLogic {
    */
 
   // Fonction exécutée automatiquement toutes les 10 minutes par Jeedom
-  public static function cron10() {
-    foreach (klereo::getPools() as $pool_id => $pool_name) {
-      $details = self::getPoolDetails($pool_id);
+  public static function cron5() {
+    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / Start');
+    foreach (self::byType('klereo') as $eqKlereo) { // boucle sur les équipements
+      log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $eqKlereo->getName() = ' . $eqKlereo->getName());
+      if ($eqKlereo->getIsEnable() && $eqKlereo->getConfiguration('eqPollId', '') != '') {
+        $probes = $eqKlereo->getProbesInfos();
+        log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $probes = ' . json_encode($probes));
+        
+        foreach ($probes as $name => $config) {
+          $filteredCmd = $eqKlereo->getCmd(null, 'filtered ' . $name);
+          if (is_object($filteredCmd))
+            $eqKlereo->checkAndUpdateCmd($filteredCmd, $config['filteredValue']);
+          $directCmd = $eqKlereo->getCmd(null, 'direct ' . $name);
+          if (is_object($directCmd))
+            $eqKlereo->checkAndUpdateCmd($directCmd, $config['directValue']);
+        }
+      }
     }
   }
   
@@ -86,42 +100,6 @@ class klereo extends eqLogic {
   
   // public static function deamon_info() { }
   // public static function deamon_start() { }
-  
-  /*   * *********************Méthodes d'instance************************* */
-  
-  // Fonction exécutée automatiquement avant la suppression de l'équipement
-  //public function preRemove() {}
-
-  // Fonction exécutée automatiquement après la suppression de l'équipement
-  //public function postRemove() { }
-  
-  // Fonction exécutée automatiquement avant la sauvegarde de l'équipement (création ou mise à jour)
-  // La levée d'une exception invalide la sauvegarde
-  //public function preSave() { }
-
- /*
-  * Fonction exécutée automatiquement après la sauvegarde de l'équipement (création ou mise à jour)
-  public function postSave() {}
-  */
-  
-  //public function postAjax() { }
-
- /*
-  * Non obligatoire mais permet de modifier l'affichage du widget si vous en avez besoin
-  public function toHtml($_version = 'dashboard') {}
-  */
-
- /*
-  * Non obligatoire mais ca permet de déclencher une action après modification de variable de configuration
-  public static function postConfig_<Variable>() {}
-  */
-
- /*
-  * Non obligatoire mais ca permet de déclencher une action avant modification de variable de configuration
-  public static function preConfig_<Variable>() {}
-  */
-
-  /*   * **********************Getteur Setteur*************************** */
   
   public static function now() {
     return date('Y-m-d H:i:s');
@@ -168,14 +146,19 @@ class klereo extends eqLogic {
     if (!is_array($response) || !isset($response['status']))
       throw new Exception(__CLASS__ . '::' . $_function_name . '&nbsp;:</br>' . __('Réponse inatendue&nbsp;: ', __FILE__) . $body);
     if ($response['status'] != 'ok')
-      throw new Exception(__CLASS__ . '::' . $_function_name . '&nbsp;:</br>' . __('Echec de l\'authentification&nbsp;: ', __FILE__) . (isset($response->detail) ? $response->detail : __('pas de détail retourné', __FILE__)));
+      throw new Exception(__CLASS__ . '::' . $_function_name . '&nbsp;:</br>' . __('Echec de l\'authentification&nbsp;: ', __FILE__) . (isset($response['detail']) ? $response['detail'] : __('pas de détail retourné', __FILE__)));
     log::add('klereo', 'debug', __CLASS__ . '::' . $_function_name . ' / curl_request return OK');
     return array($header, $response);
   }
   
+  /* Eventuellement appelée par plugins/klereo/core/ajax/klereo.ajax.php
+  public static function reinit() { }
+  */
+  
   public static function getJwtToken() {
     $config_jwt_login_dt = config::byKey('jwt::login_dt', __CLASS__, '0000-01-01 00:00:00');
     $expire_dt = strtotime('+55 minutes ' . $config_jwt_login_dt);
+    //$expire_dt = strtotime('+1 minute ' . $config_jwt_login_dt); // DEBUG
     if (strtotime(self::now()) >= $expire_dt || config::byKey('jwt::Authorization', __CLASS__, '') === '') {
       if (config::byKey('login', __CLASS__, '') === '' || config::byKey('password', __CLASS__, '') === '')
         throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Les informations de connexions doivent être renseignées dans la configuration du plugin Klereo', __FILE__));
@@ -234,15 +217,109 @@ class klereo extends eqLogic {
     return config::byKey('getIndex', __CLASS__);
   }
   
-  public static function getPoolDetails($_pool_id) {
-    $config_getPoolsDetails_dt = config::byKey('getPoolDetails_dt', __CLASS__, '0000-01-01 00:00:00');
-    $expire_dt = strtotime('+9 minutes 50 seconds ' . $config_getPoolsDetails_dt);
+  public static function getPools() {
+    $getIndex = self::getIndex();
+    $getPools = array();
+    foreach ($getIndex as $pool)
+      $getPools[$pool['idSystem']] = $pool['poolNickname'];
+    return $getPools;
+  }
+  
+  /*   * *********************Méthodes d'instance************************* */
+  
+  // Fonction exécutée automatiquement avant la suppression de l'équipement
+  //public function preRemove() {}
+
+  // Fonction exécutée automatiquement après la suppression de l'équipement
+  public function postRemove() {
+    $eqPoolId = $this->getConfiguration('eqPoolId', '');
+    config::remove('getPoolDetails_dt::' . strval($eqPoolId), __CLASS__);
+    config::remove('getPoolDetails::' . strval($eqPoolId), __CLASS__);
+  }
+  
+  // Fonction exécutée automatiquement avant la sauvegarde de l'équipement (création ou mise à jour)
+  // La levée d'une exception invalide la sauvegarde
+  public function preSave() {
+    $eqPoolId = $this->getConfiguration('eqPoolId', '');
+    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ': $eqPoolId = ' . strval($eqPoolId));
+    if ($eqPoolId === '')
+      return true;
+    if ($this->getIsEnable()) {
+      $probes = $this->getProbesInfos();
+      log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ': $probes = ' . json_encode($probes));
+      
+      $order = 0;
+      foreach ($probes as $name => $config) {
+        $filteredCmd = $this->getCmd(null, 'filtered ' . $name);
+        if (!is_object($filteredCmd)) {
+          $filteredCmd = (new klereoCmd)
+            ->setLogicalId('filtered ' . $name)
+            ->setEqLogic_id($this->getId())
+            ->setName($name . __(' : valeur filtration', __FILE__))
+            ->setType('info')
+            ->setSubType('numeric')
+            ->setConfiguration('minValue', $config['minValue'])
+            ->setConfiguration('maxValue', $config['maxValue'])
+            ->setUnite($config['unite'])
+            ->setOrder($order++)
+            ->save();
+        }
+        $this->checkAndUpdateCmd($filteredCmd, $config['filteredValue']);
+        $directCmd = $this->getCmd(null, 'direct ' . $name);
+        if (!is_object($directCmd)) {
+          $directCmd = (new klereoCmd)
+            ->setLogicalId('direct ' . $name)
+            ->setEqLogic_id($this->getId())
+            ->setName($name . __(' : valeur instantanée', __FILE__))
+            ->setType('info')
+            ->setSubType('numeric')
+            ->setConfiguration('minValue', $config['minValue'])
+            ->setConfiguration('maxValue', $config['maxValue'])
+            ->setUnite($config['unite'])
+            ->setOrder($order++)
+            ->save();
+        }
+        $this->checkAndUpdateCmd($directCmd, $config['directValue']);
+      }
+    }
+  }
+
+ /*
+  * Fonction exécutée automatiquement après la sauvegarde de l'équipement (création ou mise à jour)
+  */
+  //public function postSave()  { }
+  
+  //public function postAjax() { }
+
+ /*
+  * Non obligatoire mais permet de modifier l'affichage du widget si vous en avez besoin
+  public function toHtml($_version = 'dashboard') {}
+  */
+
+ /*
+  * Non obligatoire mais ca permet de déclencher une action après modification de variable de configuration
+  public static function postConfig_<Variable>() {}
+  */
+
+ /*
+  * Non obligatoire mais ca permet de déclencher une action avant modification de variable de configuration
+  public static function preConfig_<Variable>() {}
+  */
+
+  /*   * **********************Getteur Setteur*************************** */
+  
+  public function getPoolDetails() {
+    $eqPoolId = $this->getConfiguration('eqPoolId', '');
+    if ($eqPoolId == '')
+      return;
+    $config_getPoolDetails_dt = config::byKey('getPoolDetails_dt::' . strval($eqPoolId), __CLASS__, '0000-01-01 00:00:00');
+    $expire_dt = strtotime('+9 minutes 50 seconds ' . $config_getPoolDetails_dt);
     log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / strtotime(self::now()) >= $expire_dt = *' . (strtotime(self::now()) >= $expire_dt ? 'true' : 'false') . '*');
-    if (strtotime(self::now()) >= $expire_dt || config::byKey('getPoolDetails', __CLASS__, '') === '') {
+    if (strtotime(self::now()) >= $expire_dt || config::byKey('getPoolDetails::' . strval($eqPoolId), __CLASS__, '') === '') {
       if (config::byKey('login', __CLASS__, '') === '' || config::byKey('password', __CLASS__, '') === '')
         throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Les informations de connexions doivent être renseignées dans la configuration du plugin Klereo', __FILE__));
       $post_data = array(
-        'poolID'  => $_pool_id,
+        'poolID'  => $eqPoolId,
         'lang'    => substr(translate::getLanguage(), 0, 2)
       );
       $curl_setopt_array = array(
@@ -256,26 +333,73 @@ class klereo extends eqLogic {
       $response = self::curl_request($curl_setopt_array, __FUNCTION__);
       $body = $response[1];
       if (isset($body['response']) && is_array($body['response'])) {
-        $getPoolsDetails = $body['response'];
-        config::save('getPoolDetails_dt', self::now(), __CLASS__);
-        config::save('getPoolDetails', $getPoolsDetails, __CLASS__);
-        return $getPoolsDetails;
+        $getPoolDetails = $body['response'][0];
+        config::save('getPoolDetails_dt::' . strval($eqPoolId), self::now(), __CLASS__);
+        config::save('getPoolDetails::' . strval($eqPoolId), $getPoolDetails, __CLASS__);
+        return $getPoolDetails;
       } else
         throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de la réception des détails du bassin', __FILE__));
     }
     
-    return config::byKey('getPoolsDetails', __CLASS__);
+    return config::byKey('getPoolDetails::' . strval($eqPoolId), __CLASS__);
   }
   
-  public static function getPools() {
-    $getIndex = self::getIndex();
-    $getPools = array();
-    foreach ($getIndex as $pool)
-      $getPools[$pool['idSystem']] = $pool['poolNickname'];
-    return $getPools;
+  public function getProbesInfos() {
+    $eqPoolId = $this->getConfiguration('eqPoolId', '');
+    if ($eqPoolId == '')
+      return;
+    if (!in_array($eqPoolId, array_keys(self::getPools())))
+      throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de la réception des mesures du bassin : bassin inconnu.', __FILE__));
+    $details = $this->getPoolDetails();
+    
+    $probes = array();
+    foreach ($details as $k => $v) {
+      if (substr($k, -7) == 'Capteur') { // strlen('Capteur') = 7
+        $probeName = substr($k, 0, -7);
+        $probeInfo = array();
+        foreach ($details['probes'] as $probe) {
+          if ($probe['index'] === $v) {
+            $probeInfo = array(
+              'minValue'      => $probe['seuilMin'],
+              'maxValue'      => $probe['seuilMax'],
+              'filteredValue' => $probe['filteredValue'],
+              'directValue'   => $probe['directValue'],
+            );
+            switch ($probe['type']) {
+              case 0; case 1; case 5;
+                $probeInfo['unite'] = '°C';
+                break;
+              case 2; case 10; case 12; case 13;
+                $probeInfo['unite'] = '%';
+                break;
+              case 3;
+                $probeInfo['unite'] = 'pH';
+                break;
+              case 4;
+                $probeInfo['unite'] = 'mV';
+                break;
+              case 6;
+                $probeInfo['unite'] = 'bar';
+                break;
+              case 11;
+                $probeInfo['unite'] = 'm3/h';
+                break;
+              default;
+                $probeInfo['unite'] = '';
+            }
+            break;
+          }
+        }
+        if (isset($probeInfo['minValue']))
+          $probes[$probeName] = $probeInfo;
+      }
+    }
+    return $probes;
   }
   
 }
+
+
 
 class klereoCmd extends cmd {
   /*   * *************************Attributs****************************** */
@@ -285,11 +409,11 @@ class klereoCmd extends cmd {
   /*   * *********************Methode d'instance************************* */
 
   /*
-   * Non obligatoire permet de demander de ne pas supprimer les commandes même si elles ne sont pas dans la nouvelle configuration de l'équipement envoyé en JS
-    public function dontRemoveCmd() {
+  * Non obligatoire permet de demander de ne pas supprimer les commandes même si elles ne sont pas dans la nouvelle configuration de l'équipement envoyé en JS
+  public function dontRemoveCmd() {
     return true;
-    }
-   */
+  }
+  */
   
   public function execute($_option=array()) {
     
@@ -305,3 +429,5 @@ class klereoCmd extends cmd {
 
   /*   * **********************Getteur Setteur*************************** */
 }
+
+?>
