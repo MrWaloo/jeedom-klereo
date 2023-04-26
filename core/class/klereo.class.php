@@ -53,7 +53,7 @@ class klereo extends eqLogic {
    */
 
   // Fonction exécutée automatiquement toutes les 10 minutes par Jeedom
-  public static function cron() { // DEBUG cron10 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  public static function cron10() { // DEBUG cron10 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     self::actualizeValues();
   }
   
@@ -459,7 +459,7 @@ class klereo extends eqLogic {
           $filteredCmd = (new klereoCmd)
             ->setLogicalId( $name . '::filtered')
             ->setEqLogic_id($this->getId())
-            ->setName($descr[0] . ' : ' . __('valeur durant filtration', __FILE__))
+            ->setName($descr[0] . ' : ' . __('mesure en filtration', __FILE__))
             ->setType('info')
             ->setSubType('numeric')
             ->setConfiguration('minValue', $config['minValue'])
@@ -473,7 +473,7 @@ class klereo extends eqLogic {
           $directCmd = (new klereoCmd)
             ->setLogicalId($name . '::direct')
             ->setEqLogic_id($this->getId())
-            ->setName($descr[0] . ' : ' . __('valeur instantanée', __FILE__))
+            ->setName($descr[0] . ' : ' . __('mesure instantanée', __FILE__))
             ->setType('info')
             ->setSubType('numeric')
             ->setConfiguration('minValue', $config['minValue'])
