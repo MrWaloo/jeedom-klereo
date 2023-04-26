@@ -39,7 +39,7 @@ function printEqLogic(_eqLogic) {
 
 
 /*
- * Fonction pour l'ajout de commande, appelée automatiquement par plugin.template
+ * Fonction pour l'ajout de commandes, appelée automatiquement par plugin.template
  */
 function addCmdToTable(_cmd) {
   // Minimal structure for _cmd
@@ -69,15 +69,17 @@ function addCmdToTable(_cmd) {
   if (is_numeric(_cmd.id)) {
     tr += '   <a class="btn btn-default btn-xs cmdAction" data-action="configure" title="{{Configuration de la commande}}""><i class="fas fa-cogs"></i></a>';
     tr += '   <a class="btn btn-default btn-xs cmdAction" data-action="test" title="{{Tester}}"><i class="fas fa-rss"></i></a>';
-    tr += '   <a class="btn btn-default btn-xs cmdAction" data-action="copy" title="{{Dupliquer}}"><i class="far fa-clone"></i></a>';
+    //tr += '   <a class="btn btn-default btn-xs cmdAction" data-action="copy" title="{{Dupliquer}}"><i class="far fa-clone"></i></a>';
   }
   tr += '   <label class="checkbox-inline"><input type="checkbox" class="cmdAttr checkbox-inline" data-l1key="isVisible" checked/>{{Afficher}}</label>';
   tr += '   <label class="checkbox-inline"><input type="checkbox" class="cmdAttr" data-l1key="isHistorized" data-size="mini"/>{{Historiser}}</label>';
-  tr += '   <div class="input-group" style="margin-top:7px;">';
-  tr += '     <input class="tooltips cmdAttr form-control input-sm" data-l1key="configuration" data-l2key="minValue" placeholder="{{Min}}" title="{{Min}}" style="width:30%;max-width:120px;display:inline-block;margin-right:2px;"/>';
-  tr += '     <input class="tooltips cmdAttr form-control input-sm" data-l1key="configuration" data-l2key="maxValue" placeholder="{{Max}}" title="{{Max}}" style="width:30%;max-width:120px;display:inline-block;margin-right:2px;"/>';
-  tr += '     <input class="tooltips cmdAttr form-control input-sm" data-l1key="unite" placeholder="{{Unité}}" title="{{Unité}}" style="width:30%;max-width:120px;display:inline-block;margin-right:2px;"/>';
-  tr += '   </div>';
+  if (init(_cmd.subType) == 'numeric') {
+    tr += '   <div class="input-group" style="margin-top:7px;">';
+    tr += '     <input class="tooltips cmdAttr form-control input-sm" data-l1key="configuration" data-l2key="minValue" placeholder="{{Min}}" title="{{Min}}" style="width:30%;max-width:120px;display:inline-block;margin-right:2px;"/>';
+    tr += '     <input class="tooltips cmdAttr form-control input-sm" data-l1key="configuration" data-l2key="maxValue" placeholder="{{Max}}" title="{{Max}}" style="width:30%;max-width:120px;display:inline-block;margin-right:2px;"/>';
+    tr += '     <input class="tooltips cmdAttr form-control input-sm" data-l1key="unite" placeholder="{{Unité}}" title="{{Unité}}" style="width:30%;max-width:120px;display:inline-block;margin-right:2px;"/>';
+    tr += '   </div>';
+  }
   tr += ' </td>';
   tr += '</tr>';
   $('#table_cmd tbody').append(tr);

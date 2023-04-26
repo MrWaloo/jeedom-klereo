@@ -122,13 +122,13 @@ $eqLogics = eqLogic::byType($plugin->getId());
                     echo '</label>';
                   }
                   ?>
-                 </div>
+                </div>
               </div>
               <div class="form-group">
                 <label class="col-sm-4 control-label">{{Options}}</label>
                 <div class="col-sm-6">
-                  <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="isEnable" checked/>{{Activer}}</label>
-                  <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="isVisible" checked/>{{Visible}}</label>
+                  <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="isEnable" checked />{{Activer}}</label>
+                  <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="isVisible" checked />{{Visible}}</label>
                 </div>
               </div>
               
@@ -146,33 +146,6 @@ $eqLogics = eqLogic::byType($plugin->getId());
                   </select>
                 </div>
               </div>
-              <!--
-              <div class="form-group">
-                <label class="col-sm-4 control-label"></label>
-                <div class="col-sm-6">
-                  <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="configuration" data-l2key="eqKeepopen"/>{{Garder la connexion ouverte}}</label>
-                </div>
-              </div>
-              <div class="form-group">
-                <label class="col-sm-4 control-label">{{Mode de rafraîchissement}}</label>
-                <div class="col-sm-6">
-                  <select class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="eqRefreshMode">
-                    <option disabled selected value>-- {{Selectionnez un mode}} --</option>
-                    <option value="polling">{{Polling}}</option>
-                    <option value="cyclic">{{Cyclique}}</option>
-                    <option value="on_event">{{Sur événement}}</option>
-                  </select>
-                </div>
-              </div>
-              <div class="form-group" id="eqPolling">
-                <label class="col-sm-4 control-label">{{Polling en secondes}}
-                  <sup><i class="fas fa-question-circle tooltips" title="{{En mode Polling: raffraichissement des valeurs toutes les n secondes, minimum 1}}"></i></sup>
-                </label>
-                <div class="col-sm-6">
-                  <input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="eqPolling" placeholder="60"/>
-                </div>
-              </div>
-              -->
             </div>
             
             <!-- Partie basse ou droite de l'onglet "Équipement" -->
@@ -191,12 +164,14 @@ $eqLogics = eqLogic::byType($plugin->getId());
       
       <!-- Onglet des commandes de l'équipement -->
       <div role="tabpanel" class="tab-pane" id="commandtab">
+        <!--
         <div class="input-group pull-right" style="display:inline-flex;margin-top:5px;">
           <span class="input-group-btn">
             <a class="btn btn-warning btn-sm roundedRight" id="bt_add_command"><i class="fas fa-plus-circle"></i> {{Ajouter une commande}} </a>
           </span>
         </div>
         <br/><br/>
+        -->
         <div class="table-responsive">
           <table id="table_cmd" class="table table-bordered table-condensed">
             <thead>
