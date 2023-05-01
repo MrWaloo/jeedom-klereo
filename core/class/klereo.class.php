@@ -453,7 +453,19 @@ class klereo extends eqLogic {
               $param_text = 'pH';
             elseif ($param_text == 0)
               $param_text = __('Désinfectant', __FILE__);
-          } // TODO ************************************************************************************************************** !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          } elseif (in_array($alert_code, array(13, 14))) { // param = DebitID
+            $param_text = __('débit', __FILE__) . ' ' . strval($alert_param);
+          } elseif ($alert_code == 35) { // param = OutID
+            $param_text = __('sortie', __FILE__) . ' ' . strval($alert_param);
+          } elseif ($alert_code == 40) { // param = BSVError
+            $param_text = __('BSVError', __FILE__) . ' ' . strval($alert_param);
+          } elseif ($alert_code == 40) { // param = ComId
+            $param_text = __('Communication', __FILE__) . ' ' . strval($alert_param);
+          } elseif (in_array($alert_code, array(50, 51, 52, 54))) { // param = ErrCodeEX, -PX, -FX
+            $param_text = __('code d\'erreur', __FILE__) . ' ' . strval($alert_param);
+          } elseif ($alert_code == 53) { // param = PumpID
+            $param_text = __('Pompe numéro', __FILE__) . ' ' . strval($alert_param);
+          }
           
           $eqKlereo->checkAndUpdateCmd($alert_1, $alert_1_arr[$alert_code] . (($param_text != '') ? ' - ' . $param_text : ''));
         }
@@ -496,30 +508,30 @@ class klereo extends eqLogic {
       $details = $this->getPoolDetails();
       $pool_id = $details['idSystem'];
       
-      $this->createCmd('Filtration_TodayTime', __('Temps de filtration jour', __FILE__), 'numeric', $order, 0, 24, 'h');
-      $this->createCmd('Filtration_TotalTime', __('Temps de filtration total', __FILE__), 'numeric', $order, 0, 45000, 'h');
-      $this->createCmd('PHMinus_Today', __('Consommation pH- jour', __FILE__), 'numeric', $order, 0, 36, 'ml');
-      $this->createCmd('PHMinus_Total', __('Consommation pH- totale', __FILE__), 'numeric', $order, 0, 10, 'l');
-      $this->createCmd('Chlore_Today', __('Consommation chlore jour', __FILE__), 'numeric', $order, 0, 36, 'ml');
-      $this->createCmd('Chlore_Total', __('Consommation chlore totale', __FILE__), 'numeric', $order, 0, 10, 'l');
-      $this->createCmd('Chauff_TodayTime', __('Temps de chauffage jour', __FILE__), 'numeric', $order, 0, 24, 'h');
-      $this->createCmd('Chauff_TotalTime', __('Temps de chauffage total', __FILE__), 'numeric', $order, 0, 45000, 'h');
-      $this->createCmd('PoolMode', __('Mode de régulation', __FILE__), 'message', $order);
-      $this->createCmd('TraitMode', __('Type de désinfectant', __FILE__), 'message', $order);
-      $this->createCmd('pHMode', __('Type de correcteur de pH', __FILE__), 'message', $order);
-      $this->createCmd('HeaterMode', __('Type de chauffage', __FILE__), 'message', $order);
-      $this->createCmd('access', __('Droit d accès', __FILE__), 'message', $order);
-      $this->createCmd('ProductIdx', __('Gamme de produit', __FILE__), 'message', $order);
-      $this->createCmd('PumpType', __('Type de pompe de filtration', __FILE__), 'message', $order);
-      $this->createCmd('isLowSalt', __('Gamme d électrolyseur', __FILE__), 'message', $order);
-      $this->createCmd('alertCount', __('Nombre d alertes', __FILE__), 'numeric', $order, 0, 10, '');
-      $this->createCmd('alert_1', __('Alerte 1', __FILE__), 'message', $order);
+      $this->createCmdInfo('Filtration_TodayTime', __('Temps de filtration jour', __FILE__), 'numeric', $order, 0, 24, 'h');
+      $this->createCmdInfo('Filtration_TotalTime', __('Temps de filtration total', __FILE__), 'numeric', $order, 0, 45000, 'h');
+      $this->createCmdInfo('PHMinus_Today', __('Consommation pH- jour', __FILE__), 'numeric', $order, 0, 36, 'ml');
+      $this->createCmdInfo('PHMinus_Total', __('Consommation pH- totale', __FILE__), 'numeric', $order, 0, 10, 'l');
+      $this->createCmdInfo('Chlore_Today', __('Consommation chlore jour', __FILE__), 'numeric', $order, 0, 36, 'ml');
+      $this->createCmdInfo('Chlore_Total', __('Consommation chlore totale', __FILE__), 'numeric', $order, 0, 10, 'l');
+      $this->createCmdInfo('Chauff_TodayTime', __('Temps de chauffage jour', __FILE__), 'numeric', $order, 0, 24, 'h');
+      $this->createCmdInfo('Chauff_TotalTime', __('Temps de chauffage total', __FILE__), 'numeric', $order, 0, 45000, 'h');
+      $this->createCmdInfo('PoolMode', __('Mode de régulation', __FILE__), 'message', $order);
+      $this->createCmdInfo('TraitMode', __('Type de désinfectant', __FILE__), 'message', $order);
+      $this->createCmdInfo('pHMode', __('Type de correcteur de pH', __FILE__), 'message', $order);
+      $this->createCmdInfo('HeaterMode', __('Type de chauffage', __FILE__), 'message', $order);
+      $this->createCmdInfo('access', __('Droit d accès', __FILE__), 'message', $order);
+      $this->createCmdInfo('ProductIdx', __('Gamme de produit', __FILE__), 'message', $order);
+      $this->createCmdInfo('PumpType', __('Type de pompe de filtration', __FILE__), 'message', $order);
+      $this->createCmdInfo('isLowSalt', __('Gamme d électrolyseur', __FILE__), 'message', $order);
+      $this->createCmdInfo('alertCount', __('Nombre d alertes', __FILE__), 'numeric', $order, 0, 10, '');
+      $this->createCmdInfo('alert_1', __('Alerte 1', __FILE__), 'message', $order);
       
       self::actualizeValues();
     }
   }
   
-  function createCmd($logicalId, $name, $subType, &$order, $min = null, $max = null, $unite = null) {
+  function createCmdInfo($logicalId, $name, $subType, &$order, $min = null, $max = null, $unite = null) {
     $command = $this->getCmd(null, $logicalId);
     if (!is_object($command)) {
       $command = (new klereoCmd)
