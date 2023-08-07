@@ -55,6 +55,8 @@ function addCmdToTable(_cmd) {
   tr += ' <td class="hidden-xs">'
   tr += '   <span class="cmdAttr" data-l1key="id" disabled></span>'
   tr += '   <span class="cmdAttr" data-l1key="logicalId" hidden></span>'
+  tr += '   <span class="type" id="' + init(_cmd.type) + '" type="' + init(_cmd.type) + '" hidden>' + jeedom.cmd.availableType() + '</span>';
+  tr += '   <span class="subType" subType="' + init(_cmd.subType) + '" hidden></span>';
   tr += ' </td>'
   // Nom
   tr += ' <td class="name">';
@@ -69,7 +71,6 @@ function addCmdToTable(_cmd) {
   if (is_numeric(_cmd.id)) {
     tr += '   <a class="btn btn-default btn-xs cmdAction" data-action="configure" title="{{Configuration de la commande}}""><i class="fas fa-cogs"></i></a>';
     tr += '   <a class="btn btn-default btn-xs cmdAction" data-action="test" title="{{Tester}}"><i class="fas fa-rss"></i></a>';
-    //tr += '   <a class="btn btn-default btn-xs cmdAction" data-action="copy" title="{{Dupliquer}}"><i class="far fa-clone"></i></a>';
   }
   tr += '   <label class="checkbox-inline"><input type="checkbox" class="cmdAttr checkbox-inline" data-l1key="isVisible" checked/>{{Afficher}}</label>';
   tr += '   <label class="checkbox-inline"><input type="checkbox" class="cmdAttr" data-l1key="isHistorized" data-size="mini"/>{{Historiser}}</label>';
