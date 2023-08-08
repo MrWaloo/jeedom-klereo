@@ -64,7 +64,11 @@ function addCmdToTable(_cmd) {
   tr += ' </td>';
   // Valeur
   tr += ' <td>';
-  tr += '   <span class="cmdAttr" data-l1key="htmlstate"></span>';
+  if (init(_cmd.type) == 'info') {
+    tr += '   <span class="cmdAttr" data-l1key="htmlstate"></span>';
+  } else if (_cmd.logicalId.substr(0, 10) == 'filtration') {
+    tr += '   cmdValue = <span class="cmdAttr" data-l1key="configuration" data-l2key="cmdValue"></span>';
+  }
   tr += ' </td>';
   // Options
   tr += ' <td>';
