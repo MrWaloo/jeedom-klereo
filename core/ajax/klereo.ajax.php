@@ -29,15 +29,13 @@ try {
   */
   ajax::init();
 
-  /* Eventuellement appelée par plugin_info/configuration.php lors de l'enregistrement de la configuration (login / mot de passe)
+  // Fonction appelée par plugin_info/configuration.php lors de l'enregistrement de la configuration (login / mot de passe)
 	if (init('action') == 'reinit') {
-		klereo::reinit();
-		ajax::success();
+		ajax::success(klereo::reinit());
 	}
-  */
     
   throw new Exception(__('Aucune méthode correspondante à : ', __FILE__) . init('action'));
-  /*     * *********Catch exeption*************** */
+  /*     * *********Catch exception*************** */
 }
 catch (Exception $e) {
   ajax::error(displayException($e), $e->getCode());

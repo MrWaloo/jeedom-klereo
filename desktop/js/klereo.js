@@ -61,14 +61,13 @@ function addCmdToTable(_cmd) {
   // Nom
   tr += ' <td class="name">';
   tr += '   <input class="cmdAttr form-control input-sm" data-l1key="name">';
+  if (init(_cmd.type) == 'action' && _cmd.value) {
+    tr += '   ({{Liée à l\'id }}<span class="cmdAttr" data-l1key="value"></span>)';
+  }
   tr += ' </td>';
   // Valeur
   tr += ' <td>';
-  if (init(_cmd.type) == 'info') {
-    tr += '   <span class="cmdAttr" data-l1key="htmlstate"></span>';
-  } else if (_cmd.logicalId.substr(0, 10) == 'filtration') {
-    tr += '   cmdValue = <span class="cmdAttr" data-l1key="configuration" data-l2key="cmdValue"></span>';
-  }
+  tr += '   <span class="cmdAttr" data-l1key="htmlstate"></span>';
   tr += ' </td>';
   // Options
   tr += ' <td>';

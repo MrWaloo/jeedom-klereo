@@ -41,23 +41,23 @@ if (!isConnect()) {
 </form>
 
 <script>
-//  $('#bt_savePluginConfig').on('click', function() { // bouton sauvegarde de la configuration du plugin
-//    $.ajax({// fonction permettant de faire de l'ajax
-//      type: "POST", // methode de transmission des données au fichier php
-//      url: "plugins/klereo/core/ajax/klereo.ajax.php", // url du fichier php
-//      data: {
-//        action: "reinit"
-//      },
-//      dataType: 'json',
-//      error: function (request, status, error) {
-//        handleAjaxError(request, status, error);
-//      },
-//      success: function (data) { // si l'appel a bien fonctionné
-//        if (data.state != 'ok') {
-//          $.fn.showAlert({message: data.result, level: 'danger'});
-//          return;
-//        }
-//      }
-//    });
-//  });
+  $('#bt_savePluginConfig').on('click', function() { // bouton sauvegarde de la configuration du plugin
+    $.ajax({// fonction permettant de faire de l'ajax
+      type: "POST", // methode de transmission des données au fichier php
+      url: "plugins/klereo/core/ajax/klereo.ajax.php", // url du fichier php
+      data: {
+        action: "reinit"
+      },
+      dataType: 'json',
+      error: function (request, status, error) {
+        handleAjaxError(request, status, error);
+      },
+      success: function (data) { // si l'appel a bien fonctionné
+        if (data.state != 'ok') {
+          $.fn.showAlert({message: data.result, level: 'danger'});
+          return;
+        }
+      }
+    });
+  });
 </script>
