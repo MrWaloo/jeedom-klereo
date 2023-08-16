@@ -2,6 +2,7 @@
 
 ## TODO
 - Créer un widget
+- Ajouter d'autres commandes pour les différentes sorties
 - Ajouter les consignes pour le pH (pour tous les utilisateurs) et les autres consigne permises (Chlore, Redox, ...) en fonction des droits
 
 ## 16/08/2023 V0.1 beta
