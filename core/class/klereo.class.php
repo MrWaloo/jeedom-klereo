@@ -34,15 +34,15 @@ class klereo extends eqLogic {
   */
   public static $_encryptConfigKey = array('login', 'password', 'jwt::Authorization');
 
-  public static $_version = '0.1 beta';
+  public static $_version = '0.2 beta';
   
-  static $_WEB_VERSION = '3.87';
+  static $_WEB_VERSION = 'v321-w'; // 3.88
   static $_API_ROOT = 'https://connect.klereo.fr/php/';
   static $_USER_AGENT = 'Jeedom plugin';
   
   // Time between 2 actualizations (compatible with strtotime())
   static $_ACTUALIZE_TIME_JWT = '+55 minutes';
-  static $_ACTUALIZE_TIME_GETINDEX = '+24 hours'; // DEBUG: '+24 hours' /// '+1 minute'
+  static $_ACTUALIZE_TIME_GETINDEX = '+3 hours 55 minutes'; // DEBUG: '+24 hours' /// '+1 minute'
   static $_ACTUALIZE_TIME_GETPOOLDETAILS = '+9 minutes 50 seconds';
   
   /*   * ***********************Methode static*************************** */
@@ -125,7 +125,7 @@ class klereo extends eqLogic {
     $ch = curl_init();
     curl_setopt_array($ch, $curl_stopt_array);
     $page_content = curl_exec($ch);
-    log::add('klereo', 'debug', __CLASS__ . '::' . $_function_name . ' / $page_content = *' . $page_content . '*');
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . $_function_name . ' / $page_content = *' . $page_content . '*');
     $curl_info = curl_getinfo($ch);
     if (curl_error($ch)) {
       $error_message = curl_strerror(curl_errno($ch));
@@ -143,7 +143,7 @@ class klereo extends eqLogic {
       throw new Exception(__CLASS__ . '::' . $_function_name . '&nbsp;:</br>' . __('Réponse inatendue&nbsp;: ', __FILE__) . $body);
     if ($response['status'] != 'ok')
       throw new Exception(__CLASS__ . '::' . $_function_name . '&nbsp;:</br>' . __('Echec de la requête&nbsp;: ', __FILE__) . (isset($response['detail']) ? $response['detail'] : __('pas de détail retourné.', __FILE__)));
-    log::add('klereo', 'debug', __CLASS__ . '::' . $_function_name . ' / ' . __FUNCTION__ . ' return OK');
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . $_function_name . ' / ' . __FUNCTION__ . ' return OK');
     return array($header, $response);
   }
   
@@ -164,8 +164,8 @@ class klereo extends eqLogic {
       $response = self::curl_request($curl_setopt_array, __FUNCTION__);
       $header = $response[0];
       $body = $response[1];
-      log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $header = *' . $header . '*');
-      log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $body = *' . var_export($body, true) . '*');
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $header = *' . $header . '*');
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $body = *' . var_export($body, true) . '*');
       preg_match('/.*?^(Authorization\: Bearer \S*?)\s*$.*/ms', $header, $matches);
       $jwt_from_header = $matches[1];
       config::save('jwt::login_dt', self::now(), __CLASS__);
@@ -179,7 +179,7 @@ class klereo extends eqLogic {
   static function getIndex() {
     $config_getIndex_dt = config::byKey('getIndex_dt', __CLASS__, '0000-01-01 00:00:00');
     $expire_dt = strtotime(self::$_ACTUALIZE_TIME_GETINDEX . ' ' . $config_getIndex_dt);
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / strtotime(self::now()) >= $expire_dt = *' . (strtotime(self::now()) >= $expire_dt ? 'true' : 'false') . '*');
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / strtotime(self::now()) >= $expire_dt = *' . (strtotime(self::now()) >= $expire_dt ? 'true' : 'false') . '*');
     if (strtotime(self::now()) >= $expire_dt || config::byKey('getIndex', __CLASS__, '') === '') {
       $curl_setopt_array = array(
         CURLOPT_URL         => self::$_API_ROOT . 'GetIndex.php',
@@ -212,12 +212,12 @@ class klereo extends eqLogic {
   }
   
   static function actualizeValues() {
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / Start');
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / Start');
     foreach (self::byType('klereo') as $eqKlereo) { // boucle sur les équipements
-      log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $eqKlereo->getName() = ' . $eqKlereo->getName());
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $eqKlereo->getName() = ' . $eqKlereo->getName());
       if ($eqKlereo->getIsEnable() && $eqKlereo->getConfiguration('eqPoolId', '') != '') {
         $probes = $eqKlereo->getProbesInfos();
-        log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $probes = ' . var_export($probes, true));
+        log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $probes = ' . var_export($probes, true));
         
         foreach ($probes as $probe) {
           $filteredCmd = $eqKlereo->getCmd(null, $probe['logicalId'] . '::filtered');
@@ -479,7 +479,10 @@ class klereo extends eqLogic {
             if ($alerts_value != '')
               $alerts_value += ' || ';
             
-            $alerts_value .= $alerts_arr[$alert_code] . (($param_text != '') ? ' - ' . $param_text : '');
+            if (in_array($alert_code, array_keys($alerts_arr)))
+              $alerts_value .= $alerts_arr[$alert_code] . (($param_text != '') ? ' - ' . $param_text : '');
+            else
+              $alerts_value .= __('Code alerte inconnu par le plugin&nbsp;:', __FILE__) . ' ' . strval($alert_code);
           }
           $eqKlereo->checkAndUpdateCmd($alerts, $alerts_value);
           
@@ -500,6 +503,20 @@ class klereo extends eqLogic {
               }
               $cmdAuto = $eqKlereo->getCmd(null, $infos[0] . '_auto');
               $eqKlereo->checkAndUpdateCmd($cmdAuto, $out['mode'] == 1);
+              $cmdRegul = $eqKlereo->getCmd(null, $infos[0] . '_regulation');
+              $eqKlereo->checkAndUpdateCmd($cmdAuto, $out['mode'] == 3);
+            } elseif ($out['index'] == 4) { // chauffage
+              $cmdOff = $eqKlereo->getCmd(null, $infos[0] . '_off');
+              if ($cmdOff->execCmd() == '') // heating_off est gérée par cmd->execute(), ici on initialise juste la valeur de la commande
+                $eqKlereo->checkAndUpdateCmd($cmdOff, 0);
+              $cmdRegul = $eqKlereo->getCmd(null, $infos[0] . '_regulation');
+              $modes_arr = array(
+                0   => __('Arrêt', __FILE__),
+                1   => __('Automatique', __FILE__),
+                2   => __('Refroidissement', __FILE__),
+                3   => __('Chauffage', __FILE__),
+              );
+              $eqKlereo->checkAndUpdateCmd($cmdRegul, $modes_arr[$out['mode']]);
             }
           }
         }
@@ -544,7 +561,7 @@ class klereo extends eqLogic {
       14 => __('Auxiliaire 9', __FILE__),
       15 => __('Désinfectant hybride', __FILE__)
     );
-    if (is_numeric($index))
+    if (is_int($index) && in_array($index, array_keys($logicalIds)))
       return array($logicalIds[$index], $names[$index]);
     else
       return array($logicalIds, $names);
@@ -566,15 +583,15 @@ class klereo extends eqLogic {
   // La levée d'une exception invalide la sauvegarde
   public function preSave() {
     $eqPoolId = $this->getConfiguration('eqPoolId', '');
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ': $eqPoolId = ' . $eqPoolId);
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ': $eqPoolId = ' . $eqPoolId);
     if ($eqPoolId === '')
       return true;
     
     $probes = $this->getProbesInfos();
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ': $probes = ' . var_export($probes, true));
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ': $probes = ' . var_export($probes, true));
     
     $order = $this->getNextOrder();
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ': $order = ' . var_export($order, true));
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ': $order = ' . var_export($order, true));
     $this->createCmdAction('refresh', __('Rafraichissement', __FILE__), 'other', $order);
     
     foreach ($probes as $probe) {
@@ -633,19 +650,14 @@ class klereo extends eqLogic {
     $this->createCmdInfo('alertCount', __('Nombre d alertes', __FILE__), 'numeric', $order, 0, 5, '');
     $this->createCmdInfo('alerts', __('Alertes', __FILE__), 'string', $order);
     
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ': $details[\'outs\'] = ' . var_export($details['outs'], true));
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ': $details[\'outs\'] = ' . var_export($details['outs'], true));
     
     foreach ($details['outs'] as $out) {
-      log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ': $out = ' . var_export($out, true));
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ': $out = ' . var_export($out, true));
       
       $infos = self::getOutInfo($out['index']);
       $this->createCmdInfo($infos[0], $infos[1]. ' ' . __('état', __FILE__), 'binary', $order);
-      if ($out['index'] != 1) {
-        if (in_array($out['index'], array(2, 3, 8, 15)) && $details['access'] < 20)
-          continue; // Accès pro uniquement pour le correcteur pH (2), le désinfectant (3), le floculant (8) et le désinfectant hybride (15)
-        $this->createCmdAction($infos[0] . '_action', $infos[1] . ' ' . __('CMD', __FILE__), 'other', $order, null, null, null, $infos[0]);
-        
-      } else { // 3 commandes action pour la filtration (1)
+      if ($out['index'] == 1) { // 4 commandes action pour la filtration (1)
         $this->createCmdInfo($infos[0] . '_off', $infos[1] . ' ' . __('OFF état', __FILE__), 'binary', $order);
         $this->createCmdAction($infos[0] . '_off_action', $infos[1] . ' ' . __('OFF CMD', __FILE__), 'other', $order, null, null, null, $infos[0] . '_off');
         
@@ -659,6 +671,21 @@ class klereo extends eqLogic {
         
         $this->createCmdInfo($infos[0] . '_auto', $infos[1] . ' ' . __('AUTO état', __FILE__), 'binary', $order);
         $this->createCmdAction($infos[0] . '_auto_action', $infos[1] . ' ' . __('AUTO CMD', __FILE__), 'other', $order, null, null, null, $infos[0] . '_auto');
+        
+        $this->createCmdInfo($infos[0] . '_regulation', $infos[1] . ' ' . __('Régulation état', __FILE__), 'binary', $order);
+        $this->createCmdAction($infos[0] . '_regulation_action', $infos[1] . ' ' . __('Régulation CMD', __FILE__), 'other', $order, null, null, null, $infos[0] . '_regulation');
+        
+      } elseif ($out['index'] == 4) { // 2 commandes action pour le chauffage (4)
+        $this->createCmdInfo($infos[0] . '_off', $infos[1] . ' ' . __('OFF état', __FILE__), 'binary', $order);
+        $this->createCmdAction($infos[0] . '_off_action', $infos[1] . ' ' . __('OFF CMD', __FILE__), 'other', $order, null, null, null, $infos[0] . '_off');
+        
+        $this->createCmdInfo($infos[0] . '_regulation', $infos[1] . ' ' . __('Régulation état', __FILE__), 'string', $order);
+        $this->createCmdAction($infos[0] . '_regulation_action', $infos[1] . ' ' . __('Régulation CMD', __FILE__), 'select', $order, null, null, null, $infos[0] . '_regulation',
+                                '0|' . __('Arrêt', __FILE__) . ';1|' . __('Automatique', __FILE__) . ';2|' . __('Refroidissement', __FILE__) . ';3|' . __('Chauffage', __FILE__));
+        
+      } elseif (in_array($out['index'], array(0, 5, 6, 7, 9, 10, 11, 12, 13, 14))) { // Eclairage (0) ou AuxN (5, 6, 7, 9, 10, 11, 12, 13, 14)
+        $this->createCmdAction($infos[0] . '_action', $infos[1] . ' ' . __('CMD', __FILE__), 'other', $order, null, null, null, $infos[0]);
+        
       }
     }
   }
@@ -688,7 +715,7 @@ class klereo extends eqLogic {
     }
   }
   
-  function createCmdAction($logicalId, $name, $subType, &$order, $min = null, $max = null, $unite = null, $linkedLogicalId = null) {
+  function createCmdAction($logicalId, $name, $subType, &$order, $min = null, $max = null, $unite = null, $linkedLogicalId = null, $listValue = null) {
     $command = $this->getCmd(null, $logicalId);
     if (!is_object($command)) {
       $command = (new klereoCmd)
@@ -707,6 +734,8 @@ class klereo extends eqLogic {
         $linkedCmd = $this->getCmd(null, $linkedLogicalId);
         $command->setValue($linkedCmd->getId());
       }
+      if ($subType === 'select' && !is_null($listValue))
+        $command->setConfiguration('listValue', $listValue);
       $command->save();
     }
   }
@@ -737,7 +766,7 @@ class klereo extends eqLogic {
       return;
     $config_getPoolDetails_dt = config::byKey('getPoolDetails_dt::' . $eqPoolId, __CLASS__, '0000-01-01 00:00:00');
     $expire_dt = strtotime(self::$_ACTUALIZE_TIME_GETPOOLDETAILS . ' ' . $config_getPoolDetails_dt);
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / strtotime(self::now()) >= $expire_dt = *' . (strtotime(self::now()) >= $expire_dt ? 'true' : 'false') . '*');
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / strtotime(self::now()) >= $expire_dt = *' . (strtotime(self::now()) >= $expire_dt ? 'true' : 'false') . '*');
     if (strtotime(self::now()) >= $expire_dt || $_force || config::byKey('getPoolDetails::' . $eqPoolId, __CLASS__, '') === '') {
       $post_data = array(
         'poolID'  => intval($eqPoolId),
@@ -771,7 +800,7 @@ class klereo extends eqLogic {
     if ($eqPoolId == '')
       return;
     if (!in_array($eqPoolId, array_keys(self::getPools())))
-      throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de la réception des mesures du bassin : bassin inconnu.', __FILE__));
+      throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de la réception des mesures du bassin&nbsp;: bassin inconnu.', __FILE__));
     $details = $this->getPoolDetails();
     $sensor_types = self::getSensorTypes();
     
@@ -849,17 +878,15 @@ class klereo extends eqLogic {
   }
   
   function setOut($_out_index, $_mode, $_state) {
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $_out_index = *' . var_export($_out_index, true) . '*');
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $_mode = *' . var_export($_mode, true) . '*');
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $_state = *' . var_export($_state, true) . '*');
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $_out_index = *' . var_export($_out_index, true) . '*');
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $_mode = *' . var_export($_mode, true) . '*');
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $_state = *' . var_export($_state, true) . '*');
     $eqPoolId = $this->getConfiguration('eqPoolId', '');
     if ($eqPoolId == '')
       return;
     if (!in_array($eqPoolId, array_keys(self::getPools())))
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de l\'envoi d\'une commande.', __FILE__));
     $details = $this->getPoolDetails();
-    if ($_out_index == 4)
-      throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Le chauffage ne peut pas être piloté via l\'API.', __FILE__));
     if (in_array($_out_index, array(2, 3, 8, 15)) && $details['access'] < 20)
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Pour cette sortie, il faut au minimum un accès "professionnel / piscinier".', __FILE__));
     $valid_index = array();
@@ -870,7 +897,7 @@ class klereo extends eqLogic {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Index de sortie inconnu.', __FILE__));
     if (($_out_index != 4 && !in_array($_mode, array(0, 1, 2, 3, 4, 6, 8, 9))) || ($_out_index == 4 && !in_array($_mode, array(0, 1, 2, 3))))
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Mode non pris en charge.', __FILE__));
-    if ($_state < 0 || $_state > 7)
+    if (!is_int($_state) || $_state < 0 || $_state > 7)
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Etat de la sortie non pris en charge.', __FILE__));
     
     $post_data = array(
@@ -891,11 +918,11 @@ class klereo extends eqLogic {
     );
     $response = self::curl_request($curl_setopt_array, __FUNCTION__);
     
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $response = *' . var_export($response, true) . '*');
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $response = *' . var_export($response, true) . '*');
     
     $body = $response[1];
     if (isset($body['response']) && is_array($body['response'])) {
-      log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $body[\'response\'] = *' . var_export($body['response'], true) . '*');
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $body[\'response\'] = *' . var_export($body['response'], true) . '*');
       $cmdID = $body['response'][0]['cmdID'];
       return $cmdID;
       
@@ -905,7 +932,7 @@ class klereo extends eqLogic {
   }
   
   function waitCommand($_cmd_id) {
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $_cmd_id = *' . var_export($_cmd_id, true) . '*');
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $_cmd_id = *' . var_export($_cmd_id, true) . '*');
     
     $post_data = array(
       'cmdID' => $_cmd_id
@@ -921,7 +948,7 @@ class klereo extends eqLogic {
     );
     $response = self::curl_request($curl_setopt_array, __FUNCTION__);
     
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $response = *' . var_export($response, true) . '*');
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $response = *' . var_export($response, true) . '*');
     
     $body = $response[1];
     if (isset($body['response']) && is_array($body['response'])) {
@@ -943,7 +970,7 @@ class klereoCmd extends cmd {
   static $_OUT_MODE_MAN = 0;
   static $_OUT_MODE_TIME_SLOTS = 1;
   static $_OUT_MODE_TIMER = 2;
-  static $_OUT_MODE_CTRL = 3;
+  static $_OUT_MODE_REGUL = 3;
   static $_OUT_MODE_CLONE = 4;
   static $_OUT_MODE_SPECIAL = 5;
   static $_OUT_MODE_TEST = 6;
@@ -954,6 +981,11 @@ class klereoCmd extends cmd {
   static $_OUT_STATE_OFF = 0;
   static $_OUT_STATE_ON = 1;
   static $_OUT_STATE_AUTO = 2;
+  
+  static $_HEAT_MODE_STOP = 0;
+  static $_HEAT_MODE_AUTO = 1;
+  static $_HEAT_MODE_COOLING = 2;
+  static $_HEAT_MODE_HEATING = 3;
 
   /*   * ***********************Methode static*************************** */
 
@@ -968,7 +1000,7 @@ class klereoCmd extends cmd {
   
   public function execute($_option=array()) {
     
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' *** execute ***: ' . var_export($_option, true));
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' *** execute ***: ' . var_export($_option, true));
     
     if ($this->getType() != 'action')
       return;
@@ -985,9 +1017,9 @@ class klereoCmd extends cmd {
     $outInfos = klereo::getOutInfo();
     $logicalIds = $outInfos[0];
     //$names = $outInfos[1];
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $logicalIds: ' . var_export($logicalIds, true));
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $logicalIds: ' . var_export($logicalIds, true));
     
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $logicalId: ' . var_export($logicalId, true));
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $logicalId: ' . var_export($logicalId, true));
     
     $infoLogicalId = '';
     
@@ -1011,15 +1043,15 @@ class klereoCmd extends cmd {
         }
       }
     }
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $outInfoIndex: ' . var_export($outInfoIndex, true));
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $outInfoIndex: ' . var_export($outInfoIndex, true));
     if (!isset($outInfoIndex))
       throw new Exception($this->getHumanName() . '&nbsp;:</br>' . __('Action impossible à exécuter.', __FILE__));
     
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $infoLogicalId: ' . var_export($infoLogicalId, true));
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $infoLogicalId: ' . var_export($infoLogicalId, true));
     
     $execCmdInfo = $eqKlereo->getCmd(null, $infoLogicalId);
     $execCmdInfoValue = intval($execCmdInfo->execCmd());
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $execCmdInfoValue: ' . var_export($execCmdInfoValue, true));
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $execCmdInfoValue: ' . var_export($execCmdInfoValue, true));
     
     $details = $eqKlereo->getPoolDetails();
     $pool_id = $details['idSystem'];
@@ -1035,17 +1067,18 @@ class klereoCmd extends cmd {
     
     if ($outInfoIndex == 1) { // filtration
       $isAnalogicPump = $details['PumpMaxSpeed'] > 1;
-      $newSetpoint = in_array('slider', array_keys($_option)) ? $_option['slider'] : null;
       
-      $execCmd = ''; // Type de commande à exécuter ('OFF', 'ON', 'Setpoint' ou 'AUTO')
+      $execCmd = ''; // Type de commande à exécuter ('OFF', 'ON', 'Setpoint', 'AUTO' ou 'Regulation')
+      if (substr($infoLogicalId, -6) === '_value')
+        $infoLogicalId = substr($infoLogicalId, 0, -6);
       
-      // *** Command OFF
+      // *** Commande OFF
       $cmdActionOff = $eqKlereo->getCmd(null, $infoLogicalId . '_off_action');
       $cmdInfoOff = $eqKlereo->getCmd(null, $infoLogicalId . '_off');
       if ($cmdInfoOff->execCmd() == '') // la commande est juste initialisée
         $eqKlereo->checkAndUpdateCmd($cmdInfoOff, 0);
       $cmdInfoOffValue = $cmdInfoOff->execCmd();
-      log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $cmdInfoOffValue: ' . var_export($cmdInfoOffValue, true));
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $cmdInfoOffValue: ' . var_export($cmdInfoOffValue, true));
       if ($logicalId == $cmdActionOff->getLogicalId()) {
         $execCmd = 'OFF';
         $eqKlereo->checkAndUpdateCmd($cmdInfoOff, 1 - $cmdInfoOffValue); // La valeur de cette commande est uniquement gérée ici
@@ -1073,7 +1106,14 @@ class klereoCmd extends cmd {
       if ($logicalId == $cmdActionAuto->getLogicalId())
         $execCmd = 'AUTO';
       
-      // Mode est état courant
+      // *** Commande Régulation
+      $cmdActionRegul = $eqKlereo->getCmd(null, $infoLogicalId . '_regulation_action');
+      $cmdInfoRegul = $eqKlereo->getCmd(null, $infoLogicalId . '_regulation');
+      $cmdInfoRegulValue = $cmdInfoRegul->execCmd();
+      if ($logicalId == $cmdActionRegul->getLogicalId())
+        $execCmd = 'Regulation';
+      
+      // Mode et état courant
       $curMode = self::$_OUT_STATE_OFF;
       foreach ($details['outs'] as $out) {
         if ($out['index'] == $outInfoIndex) {
@@ -1081,21 +1121,23 @@ class klereoCmd extends cmd {
           break;
         }
       }
-      $curState = $isAnalogicPump ? $cmdInfoValue : $cmdInfoOnValue;
+      $curState = $isAnalogicPump ? $cmdInfoValueValue : $cmdInfoOnValue;
       
       // Nouvelle valeur de la commande
-      log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $execCmd: ' . var_export($execCmd, true));
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $execCmd: ' . var_export($execCmd, true));
       $newOffValue = $cmdInfoOff->execCmd();
-      log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newOffValue: ' . var_export($newOffValue, true));
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newOffValue: ' . var_export($newOffValue, true));
       if ($isAnalogicPump) {
         $newSetpointValue = $execCmd == 'Setpoint' ? $_option['slider'] : $cmdInfoValueValue;
-        log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newSetpointValue: ' . var_export($newSetpointValue, true));
+        log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newSetpointValue: ' . var_export($newSetpointValue, true));
       } else {
         $newOnValue = $execCmd == 'ON' ? 1 - $cmdInfoOnValue : $cmdInfoOnValue;
-        log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newOnValue: ' . var_export($newOnValue, true));
+        log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newOnValue: ' . var_export($newOnValue, true));
       }
       $newAutoValue = $execCmd == 'AUTO' ? 1 - $cmdInfoAutoValue : $cmdInfoAutoValue;
-      log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newAutoValue: ' . var_export($newAutoValue, true));
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newAutoValue: ' . var_export($newAutoValue, true));
+      $newRegulValue = $execCmd == 'Regulation' ? 1 - $cmdInfoRegulValue : $cmdInfoRegulValue;
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newRegulValue: ' . var_export($newRegulValue, true));
       
       // Nouveaux mode et état
       $newMode = self::$_OUT_MODE_MAN;
@@ -1105,12 +1147,15 @@ class klereoCmd extends cmd {
         $newState = self::$_OUT_STATE_OFF;
       } elseif ($isAnalogicPump && $execCmd == 'Setpoint') {
         $newMode = self::$_OUT_MODE_MAN;
-        $newState = self::$newSetpointValue;
+        $newState = $newSetpointValue;
       } elseif (!$isAnalogicPump && $newOnValue == 1) {
         $newMode = self::$_OUT_MODE_MAN;
         $newState = self::$_OUT_STATE_ON;
       } elseif ($newAutoValue == 1) {
         $newMode = self::$_OUT_MODE_TIME_SLOTS;
+        $newState = self::$_OUT_STATE_AUTO;
+      } elseif ($newRegulValue == 1) {
+        $newMode = self::$_OUT_MODE_REGUL;
         $newState = self::$_OUT_STATE_AUTO;
       }
       
@@ -1123,7 +1168,66 @@ class klereoCmd extends cmd {
           klereo::actualizeValues();
         }
       }
-    } else { // ommande 'nomale' (pas filtration)
+      
+    } else if ($outInfoIndex == 4) { // chauffage
+      $execCmd = ''; // Type de commande à exécuter ('OFF' ou 'Regulation')
+      // *** Commande OFF
+      $cmdActionOff = $eqKlereo->getCmd(null, $infoLogicalId . '_off_action');
+      $cmdInfoOff = $eqKlereo->getCmd(null, $infoLogicalId . '_off');
+      if ($cmdInfoOff->execCmd() == '') // la commande est juste initialisée
+        $eqKlereo->checkAndUpdateCmd($cmdInfoOff, 0);
+      $cmdInfoOffValue = $cmdInfoOff->execCmd();
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $cmdInfoOffValue: ' . var_export($cmdInfoOffValue, true));
+      if ($logicalId == $cmdActionOff->getLogicalId()) {
+        $execCmd = 'OFF';
+        $eqKlereo->checkAndUpdateCmd($cmdInfoOff, 1 - $cmdInfoOffValue); // La valeur de cette commande est uniquement gérée ici
+      }
+      
+      // *** Commande Régulation
+      $cmdActionRegul = $eqKlereo->getCmd(null, $infoLogicalId . '_regulation_action');
+      $cmdInfoRegul = $eqKlereo->getCmd(null, $infoLogicalId . '_regulation');
+      $cmdInfoRegulValue = $cmdInfoRegul->execCmd();
+      if ($logicalId == $cmdActionRegul->getLogicalId())
+        $execCmd = 'Regulation';
+      
+      // Mode et état courant
+      $curMode = self::$_HEAT_MODE_STOP;
+      $curState = self::$_OUT_STATE_AUTO;
+      foreach ($details['outs'] as $out) {
+        if ($out['index'] == $outInfoIndex) {
+          $curMode = $out['mode'];
+          $curState = $out['status'];
+          break;
+        }
+      }
+      
+      // Nouvelle valeur de la commande
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $execCmd: ' . var_export($execCmd, true));
+      $newOffValue = $cmdInfoOff->execCmd();
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newOffValue: ' . var_export($newOffValue, true));
+      $newRegulValue = $execCmd == 'Regulation' ? $_option['select'] : $cmdInfoRegulValue;
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newRegulValue: ' . var_export($newRegulValue, true));
+      
+      // Nouveaux mode et état
+      $newMode = $curMode;
+      $newState = self::$_OUT_STATE_OFF;
+      if ($newOffValue == 1) {
+        $newMode = self::$_HEAT_MODE_STOP;
+      } elseif ($execCmd == 'Regulation') {
+        $newMode = intval($newRegulValue);
+      }
+      
+      // En cas de changement de mode ou d'état -> setOut
+      if ($newMode != $curMode || $newState != $curState) {
+        $cmdID = $eqKlereo->setOut($outInfoIndex, $newMode, $newState);
+        $status = $eqKlereo->waitCommand($cmdID);
+        if ($status == 9) {
+          $eqKlereo->getPoolDetails(true);
+          klereo::actualizeValues();
+        }
+      }
+      
+    } else { // commande 'nomale' (éclairage ou AuxN)
       $newState = 1 - $execCmdInfoValue;
       $cmdID = $eqKlereo->setOut($outInfoIndex, self::$_OUT_MODE_MAN, $newState);
       $status = $eqKlereo->waitCommand($cmdID);
@@ -1131,6 +1235,7 @@ class klereoCmd extends cmd {
         $eqKlereo->getPoolDetails(true);
         klereo::actualizeValues();
       }
+      
     }
     
   }
