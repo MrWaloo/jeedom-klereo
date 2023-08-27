@@ -10,6 +10,8 @@ officiel](https://connect.klereo.fr/v3) et si l'équipement de l'installation le
 - au contrôle des l'éclairage du bassin,
 - au contrôle des sorties auxiliaires.
 
+Le plugin Klereo peut donc être utile au propriétaire du bassin comme au pisciniste.
+
 ***
 
 # Utilisation
