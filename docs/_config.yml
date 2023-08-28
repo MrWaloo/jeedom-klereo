@@ -19,6 +19,7 @@ exclude:
 - vendor
 plugins:
 - jekyll-seo-tag
+- jemoji
 title: "Jeedom - Klereo"
 description: "Page de documentation du plugin Jeedom 'Klereo'."
 author: "Michel_F"
