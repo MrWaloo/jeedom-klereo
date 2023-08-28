@@ -10,7 +10,7 @@
 > :warning: ***Important***  
 > Il faut supprimer et recréer les équipements une fois cette mise à jour installée !
 
-###Fonctionalités
+### Fonctionalités
 - Lors de leur création, les commandes info et action prennent le nom personnalisé du site connect.klereo.com
 - Une paire de commandes (action et info liée) est créée pour les consignes de pH (pour tous les utilisateurs) et les
 autres consignes (Chlore, Redox, Température de chauffage) en fonction des droits de l'utilisateur
