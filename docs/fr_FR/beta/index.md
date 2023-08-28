@@ -7,10 +7,11 @@ officiel](https://connect.klereo.fr/v3) et si l'équipement de l'installation le
 - à la consigne de chauffage,
 - éventuellement aux consignes de pH, de redox et de chlore selon vos droits d'accès,
 - au contrôle de la filtration,
-- au contrôle des l'éclairage du bassin,
+- au contrôle de l'éclairage du bassin,
 - au contrôle des sorties auxiliaires.
 
-Le plugin Klereo peut donc être utile au propriétaire du bassin comme au pisciniste.
+Le plugin Klereo peut donc être utile au propriétaire du bassin comme au pisciniste. Le pisciniste a la possibilité de
+créer un équipement par bassin.
 
 ***
 
@@ -27,12 +28,23 @@ Là, vous devez remplir les informations de connexion :
 Attention à bien cliquer sur le bouton ![Sauvegarder](../../images/Sauvegarder.png) sans quoi votre saisie ne sera pas
 sauvegardée.
 
-# Le principe
+## Le principe
 
+Un équipement de plugin correspond à un bassin. En fonction des mesures gérées par votre coffret Klereo, du type
+des équipements installés et de vos droits d'accès, les commandes info et action nécessaires et possibles sont
+automatiquement créées au moment de la sauvegarde de l'équipement.
 
+Le nom de toutes les commandes peut être personnalisé. Sinon, il n'est pas possible d'ajouter ou de supprimer des
+commandes manuellement.
 
+Pour chaque mesure, une commande 'instantanée' et 'en filtration' sont créées. Les commandes 'en filtration' ne sont
+actualisées par l'API que lorsque la filtration est active. Le plugin ne fait que afficher les valeurs fournies par
+l'API, aucun traitement ou calcul n'est fait.
 
+La plage des commandes info numériques s'adapte automatiquement à la valeur mesurée afin de ne pas générer d'erreur et
+de permettre à Jeedom d'afficher toutes les mesures. La plage peut être personnalisée. Toutefois si elle n'est pas
+adaptée une mesure faite, le plugin la modifiera.
 
-> :warning: ***Important***  
-> Test de message important
+Si des commandes sont supprimées de la base de données, elles seront recréées lors de la sauvegarde de l'équipement.
+
 

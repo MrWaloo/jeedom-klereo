@@ -34,9 +34,9 @@ class klereo extends eqLogic {
   */
   public static $_encryptConfigKey = array('login', 'password', 'jwt::Authorization');
 
-  public static $_version = '0.2 beta';
+  public static $_version = '0.3 beta';
   
-  static $_WEB_VERSION = 'v321-w'; // 3.88
+  static $_WEB_VERSION = '389-W';
   static $_API_ROOT = 'https://connect.klereo.fr/php/';
   static $_USER_AGENT = 'Jeedom plugin';
   
@@ -172,7 +172,6 @@ class klereo extends eqLogic {
       config::save('jwt::Authorization', $jwt_from_header, __CLASS__);
       return $jwt_from_header;
     }
-    
     return config::byKey('jwt::Authorization', __CLASS__);
   }
   
@@ -199,7 +198,6 @@ class klereo extends eqLogic {
       } else
         throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de la réception de la liste des bassins.', __FILE__));
     }
-    
     return config::byKey('getIndex', __CLASS__);
   }
   
@@ -220,12 +218,12 @@ class klereo extends eqLogic {
         log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $probes = ' . var_export($probes, true));
         
         foreach ($probes as $probe) {
-          $filteredCmd = $eqKlereo->getCmd(null, $probe['logicalId'] . '::filtered');
+          $filteredCmd = $eqKlereo->getCmd('info', $probe['logicalId'] . '_filtered');
           if ($filteredCmd) {
             $filteredCmd->adjustMinMax(floor($probe['filteredValue']), ceil($probe['filteredValue']));
             $eqKlereo->checkAndUpdateCmd($filteredCmd, $probe['filteredValue']);
           }
-          $directCmd = $eqKlereo->getCmd(null, $probe['logicalId'] . '::direct');
+          $directCmd = $eqKlereo->getCmd('info', $probe['logicalId'] . '_direct');
           if ($directCmd) {
             $directCmd->adjustMinMax(floor($probe['directValue']), ceil($probe['directValue']));
             $eqKlereo->checkAndUpdateCmd($directCmd, $probe['directValue']);
@@ -245,59 +243,59 @@ class klereo extends eqLogic {
           }
         }
         
-        $Filtration_TodayTime = $eqKlereo->getCmd(null, 'Filtration_TodayTime');
+        $Filtration_TodayTime = $eqKlereo->getCmd('info', 'Filtration_TodayTime');
         if ($Filtration_TodayTime) {
           $totalTime = $details['params']['Filtration_TodayTime'] / 3600;
           $Filtration_TodayTime->adjustMinMax(floor($totalTime), ceil($totalTime));
           $eqKlereo->checkAndUpdateCmd($Filtration_TodayTime, $totalTime);
         }
-        $Filtration_TotalTime = $eqKlereo->getCmd(null, 'Filtration_TotalTime');
+        $Filtration_TotalTime = $eqKlereo->getCmd('info', 'Filtration_TotalTime');
         if ($Filtration_TotalTime) {
           $totalTime = $details['params']['Filtration_TotalTime'] / 3600;
           $Filtration_TotalTime->adjustMinMax(floor($totalTime), ceil($totalTime));
           $eqKlereo->checkAndUpdateCmd($Filtration_TotalTime, $totalTime);
         }
-        $PHMinus_Today = $eqKlereo->getCmd(null, 'PHMinus_Today');
+        $PHMinus_Today = $eqKlereo->getCmd('info', 'PHMinus_Today');
         if ($PHMinus_Today) {
           $totalPHMinus = $details['params']['PHMinus_TodayTime'] * $details['params']['PHMinus_Debit'] / 36;
           $PHMinus_Today->adjustMinMax(floor($totalPHMinus), ceil($totalPHMinus));
           $eqKlereo->checkAndUpdateCmd($PHMinus_Today, $totalPHMinus);
         }
-        $PHMinus_Total = $eqKlereo->getCmd(null, 'PHMinus_Total');
+        $PHMinus_Total = $eqKlereo->getCmd('info', 'PHMinus_Total');
         if ($PHMinus_Total) {
           $totalPHMinus = $details['params']['PHMinus_TotalTime'] * $details['params']['PHMinus_Debit'] / 36000;
           $PHMinus_Total->adjustMinMax(floor($totalPHMinus), ceil($totalPHMinus));
           $eqKlereo->checkAndUpdateCmd($PHMinus_Total, $totalPHMinus);
         }
-        $Chlore_Today = $eqKlereo->getCmd(null, 'Chlore_Today');
+        $Chlore_Today = $eqKlereo->getCmd('info', 'Chlore_Today');
         if ($Chlore_Today) {
           $totalChlore = $details['params']['ElectroChlore_TodayTime'] * $details['params']['Chlore_Debit'] / 36;
           $Chlore_Today->adjustMinMax(floor($totalChlore), ceil($totalChlore));
           $eqKlereo->checkAndUpdateCmd($Chlore_Today, $totalChlore);
         }
-        $Chlore_Total = $eqKlereo->getCmd(null, 'Chlore_Total');
+        $Chlore_Total = $eqKlereo->getCmd('info', 'Chlore_Total');
         if ($Chlore_Total) {
           $totalChlore = $details['params']['ElectroChlore_TotalTime'] * $details['params']['Chlore_Debit'] / 36000;
           $Chlore_Total->adjustMinMax(floor($totalChlore), ceil($totalChlore));
           $eqKlereo->checkAndUpdateCmd($Chlore_Total, $totalChlore);
         }
-        $Filtration_TodayTime = $eqKlereo->getCmd(null, 'Filtration_TodayTime');
+        $Filtration_TodayTime = $eqKlereo->getCmd('info', 'Filtration_TodayTime');
         if ($Filtration_TodayTime) {
           $Filtration_TodayTime->adjustMinMax(0, 24);
           $eqKlereo->checkAndUpdateCmd($Filtration_TodayTime, $details['params']['Filtration_TodayTime'] / 3600);
         }
-        $Chauff_TotalTime = $eqKlereo->getCmd(null, 'Chauff_TotalTime');
+        $Chauff_TotalTime = $eqKlereo->getCmd('info', 'Chauff_TotalTime');
         if ($Chauff_TotalTime) {
           $totalTime = $details['params']['Chauff_TotalTime'] / 3600;
           $Chauff_TotalTime->adjustMinMax(floor($totalTime), ceil($totalTime));
           $eqKlereo->checkAndUpdateCmd($Chauff_TotalTime, $totalTime);
         }
-        $Chauff_TodayTime = $eqKlereo->getCmd(null, 'Chauff_TodayTime');
+        $Chauff_TodayTime = $eqKlereo->getCmd('info', 'Chauff_TodayTime');
         if ($Chauff_TodayTime) {
           $Chauff_TodayTime->adjustMinMax(0, 24);
           $eqKlereo->checkAndUpdateCmd($Chauff_TodayTime, $details['params']['Chauff_TodayTime'] / 3600);
         }
-        $PoolMode = $eqKlereo->getCmd(null, 'PoolMode');
+        $PoolMode = $eqKlereo->getCmd('info', 'PoolMode');
         if ($PoolMode) {
           $PoolMode_arr = array(
             0 => __('Arrêt', __FILE__),
@@ -308,7 +306,7 @@ class klereo extends eqLogic {
           );
           $eqKlereo->checkAndUpdateCmd($PoolMode, $PoolMode_arr[$pool['RegulModes']['PoolMode']]);
         }
-        $TraitMode = $eqKlereo->getCmd(null, 'TraitMode');
+        $TraitMode = $eqKlereo->getCmd('info', 'TraitMode');
         if ($TraitMode) {
           $TraitMode_arr = array(
             0 => __('Aucun', __FILE__),
@@ -322,7 +320,7 @@ class klereo extends eqLogic {
           );
           $eqKlereo->checkAndUpdateCmd($TraitMode, $TraitMode_arr[$pool['RegulModes']['TraitMode']]);
         }
-        $pHMode = $eqKlereo->getCmd(null, 'pHMode');
+        $pHMode = $eqKlereo->getCmd('info', 'pHMode');
         if ($pHMode) {
           $pHMode_arr = array(
             0 => __('Aucun', __FILE__),
@@ -331,18 +329,18 @@ class klereo extends eqLogic {
           );
           $eqKlereo->checkAndUpdateCmd($pHMode, $pHMode_arr[$pool['RegulModes']['pHMode']]);
         }
-        $HeaterMode = $eqKlereo->getCmd(null, 'HeaterMode');
+        $HeaterMode = $eqKlereo->getCmd('info', 'HeaterMode');
         if ($HeaterMode) {
           $HeaterMode_arr = array(
             0 => __('Aucun', __FILE__),
-            1 => __('Réchauffeur', __FILE__),
-            2 => __('Pompe à chaleur KL1', __FILE__),
-            3 => __('Chauffage sans consigne', __FILE__),
-            4 => __('Pompe à chaleur KL2', __FILE__)
+            1 => __('PAC ou réchauffeur ON/OFF', __FILE__),
+            2 => __('Pompe à chaleur EasyTherm', __FILE__),
+            3 => __('Chauffage ON/OFF sans consigne', __FILE__),
+            4 => __('Pompe à chaleur KlereoTherm', __FILE__)
           );
           $eqKlereo->checkAndUpdateCmd($HeaterMode, $HeaterMode_arr[$pool['RegulModes']['HeaterMode']]);
         }
-        $access = $eqKlereo->getCmd(null, 'access');
+        $access = $eqKlereo->getCmd('info', 'access');
         if ($access) {
           $accessValue = __('Valeur inconnue', __FILE__);
           if ($details['access'] == 5)
@@ -352,13 +350,13 @@ class klereo extends eqLogic {
           elseif ($details['access'] == 16)
             $accessValue = __('Utilisateur avancé', __FILE__);
           elseif ($details['access'] == 20)
-            $accessValue = __('Piscinier (pro)', __FILE__);
+            $accessValue = __('Pisciniste (pro)', __FILE__);
           elseif ($details['access'] > 20)
             $accessValue = __('Accès Klereo', __FILE__);
           
           $eqKlereo->checkAndUpdateCmd($access, $accessValue);
         }
-        $ProductIdx = $eqKlereo->getCmd(null, 'ProductIdx');
+        $ProductIdx = $eqKlereo->getCmd('info', 'ProductIdx');
         if ($ProductIdx) {
           $ProductIdx_arr = array(
             0 => 'Care / Premium',
@@ -372,7 +370,7 @@ class klereo extends eqLogic {
           );
           $eqKlereo->checkAndUpdateCmd($ProductIdx, $ProductIdx_arr[$details['ProductIdx']]);
         }
-        $PumpType = $eqKlereo->getCmd(null, 'PumpType');
+        $PumpType = $eqKlereo->getCmd('info', 'PumpType');
         if ($PumpType) {
           $PumpType_arr = array(
             0 => __('Pompe générique (pilotée par contacteur)', __FILE__),
@@ -382,7 +380,7 @@ class klereo extends eqLogic {
           );
           $eqKlereo->checkAndUpdateCmd($PumpType, $PumpType_arr[$pool['PumpType']]);
         }
-        $isLowSalt = $eqKlereo->getCmd(null, 'isLowSalt');
+        $isLowSalt = $eqKlereo->getCmd('info', 'isLowSalt');
         if ($isLowSalt) {
           $isLowSalt_arr = array(
             0 => 'Gamme 5g/h',
@@ -390,13 +388,13 @@ class klereo extends eqLogic {
           );
           $eqKlereo->checkAndUpdateCmd($isLowSalt, $isLowSalt_arr[$pool['isLowSalt']]);
         }
-        $alertCount = $eqKlereo->getCmd(null, 'alertCount');
+        $alertCount = $eqKlereo->getCmd('info', 'alertCount');
         if ($alertCount) {
           $alert_count = count($pool['alerts']);
           $alertCount->adjustMinMax(0, $alert_count);
           $eqKlereo->checkAndUpdateCmd($alertCount, $alert_count);
         }
-        $alerts = $eqKlereo->getCmd(null, 'alerts');
+        $alerts = $eqKlereo->getCmd('info', 'alerts');
         if ($alerts) {
           $alerts_arr = array(
             0   => __('Pas d\'alerte', __FILE__),
@@ -445,7 +443,9 @@ class klereo extends eqLogic {
             55  => __('Mulcapteur Gen3 ou Gen5 absent', __FILE__),
             56  => __('Etat de la filtration inconnu, risque de traitement sans filtration', __FILE__),
             57  => __('Multicapteur Gen3 ou Gen4 absent', __FILE__),
-            58  => __('Mauvaise configuration de la pompe', __FILE__)
+            58  => __('Mauvaise configuration de la pompe', __FILE__),
+            59  => __('Problème de communication avec le module de mesure de consommation', __FILE__),
+            60  => __('Écran de la pompe à vitesse variable verrouillé', __FILE__)
           );
           $alerts_value = '';
           foreach ($pool['alerts'] as $pool_alert) {
@@ -486,37 +486,54 @@ class klereo extends eqLogic {
           }
           $eqKlereo->checkAndUpdateCmd($alerts, $alerts_value);
           
+          foreach (array('ConsigneEau', 'ConsignePH', 'ConsigneRedox', 'ConsigneChlore') as $consigne) {
+            $cmd = $eqKlereo->getCmd('info', $consigne);
+            if ($cmd && array_key_exists($consigne, $details['params'])) {
+              $cmd->adjustMinMax(floor($details['params'][$consigne]), ceil($details['params'][$consigne]));
+              $eqKlereo->checkAndUpdateCmd($cmd, $details['params'][$consigne]);
+            }
+          }
+          
           foreach ($details['outs'] as $out) {
-            $infos = self::getOutInfo($out['index']);
-            $cmd = $eqKlereo->getCmd(null, $infos[0]);
+            [$outN, $name] = $eqKlereo->getOutInfo($out['index']);
+            $cmd = $eqKlereo->getCmd('info', $outN);
             $eqKlereo->checkAndUpdateCmd($cmd, $out['status']);
-            if ($out['index'] == 1) { // filtration
-              $cmdOff = $eqKlereo->getCmd(null, $infos[0] . '_off');
+            if ($out['index'] == 1) { // Filtration (1)
+              $cmdOff = $eqKlereo->getCmd('info', $outN . '_off');
               if ($cmdOff->execCmd() == '') // filtration_off est gérée par cmd->execute(), ici on initialise juste la valeur de la commande
                 $eqKlereo->checkAndUpdateCmd($cmdOff, 0);
               if ($details['PumpMaxSpeed'] > 1) { // Analogic pump
-                $cmdValue = $eqKlereo->getCmd(null, $infos[0] . '_value');
+                $cmdValue = $eqKlereo->getCmd('info', $outN . '_value');
                 $eqKlereo->checkAndUpdateCmd($cmdValue, intval($out['status']));
               } else {
-                $cmdOn = $eqKlereo->getCmd(null, $infos[0] . '_on');
-                $eqKlereo->checkAndUpdateCmd($cmdOn, $out['mode'] == 0 && $out['status'] == 1);
+                $cmdOn = $eqKlereo->getCmd('info', $outN . '_on');
+                $eqKlereo->checkAndUpdateCmd($cmdOn, $out['mode'] == klereoCmd::$_OUT_MODE_MAN && $out['status'] == klereoCmd::$_OUT_STATE_ON);
               }
-              $cmdAuto = $eqKlereo->getCmd(null, $infos[0] . '_auto');
-              $eqKlereo->checkAndUpdateCmd($cmdAuto, $out['mode'] == 1);
-              $cmdRegul = $eqKlereo->getCmd(null, $infos[0] . '_regulation');
-              $eqKlereo->checkAndUpdateCmd($cmdAuto, $out['mode'] == 3);
-            } elseif ($out['index'] == 4) { // chauffage
-              $cmdOff = $eqKlereo->getCmd(null, $infos[0] . '_off');
+              $cmdAuto = $eqKlereo->getCmd('info', $outN . '_auto');
+              $eqKlereo->checkAndUpdateCmd($cmdAuto, $out['mode'] == klereoCmd::$_OUT_MODE_TIME_SLOTS);
+              $cmdRegul = $eqKlereo->getCmd('info', $outN . '_regulation');
+              $eqKlereo->checkAndUpdateCmd($cmdRegul, $out['mode'] == klereoCmd::$_OUT_MODE_REGUL);
+              
+            } elseif ($out['index'] == 4) { // Chauffage (4)
+              $cmdOff = $eqKlereo->getCmd('info', $outN . '_off');
               if ($cmdOff->execCmd() == '') // heating_off est gérée par cmd->execute(), ici on initialise juste la valeur de la commande
                 $eqKlereo->checkAndUpdateCmd($cmdOff, 0);
-              $cmdRegul = $eqKlereo->getCmd(null, $infos[0] . '_regulation');
-              $modes_arr = array(
-                0   => __('Arrêt', __FILE__),
-                1   => __('Automatique', __FILE__),
-                2   => __('Refroidissement', __FILE__),
-                3   => __('Chauffage', __FILE__),
-              );
-              $eqKlereo->checkAndUpdateCmd($cmdRegul, $modes_arr[$out['mode']]);
+              $cmdRegul = $eqKlereo->getCmd('info', $outN . '_regulation');
+              $eqKlereo->checkAndUpdateCmd($cmdRegul, $out['mode']);
+              
+            }  elseif (in_array($out['index'], array(0, 5, 6, 7, 9, 10, 11, 12, 13, 14))) { // Eclairage (0) ou AuxN (5, 6, 7, 9, 10, 11, 12, 13, 14)
+              $cmdOff = $eqKlereo->getCmd('info', $outN . '_off');
+              if ($cmdOff->execCmd() == '') // out_nnn_off est gérée par cmd->execute(), ici on initialise juste la valeur de la commande
+                $eqKlereo->checkAndUpdateCmd($cmdOff, 0);
+              $cmdOn = $eqKlereo->getCmd('info', $outN . '_on');
+              $eqKlereo->checkAndUpdateCmd($cmdOn, $out['mode'] == klereoCmd::$_OUT_MODE_MAN && $out['status'] == klereoCmd::$_OUT_STATE_ON);
+              $cmdOffDelay = $eqKlereo->getCmd('info', 'offDelay_' . $outN);
+              $eqKlereo->checkAndUpdateCmd($cmdOffDelay, $out['offDelay']);
+              $cmdTimer = $eqKlereo->getCmd('info', $outN . '_timer');
+              $eqKlereo->checkAndUpdateCmd($cmdTimer, $out['mode'] == klereoCmd::$_OUT_MODE_TIMER);
+              $cmdTimeSlots = $eqKlereo->getCmd('info', $outN . '_timeSlots');
+              $eqKlereo->checkAndUpdateCmd($cmdTimeSlots, $out['mode'] == klereoCmd::$_OUT_MODE_TIME_SLOTS);
+              
             }
           }
         }
@@ -524,47 +541,21 @@ class klereo extends eqLogic {
     }
   }
   
-  static function getOutInfo($index = null) {
-    $logicalIds = array(
-      0  => 'lighting',
-      1  => 'filtration',
-      2  => 'pH_adjuster',
-      3  => 'disinfectant',
-      4  => 'heating',
-      5  => 'auxiliary_1',
-      6  => 'auxiliary_2',
-      7  => 'auxiliary_3',
-      8  => 'flocculant',
-      9  => 'auxiliary_4',
-      10 => 'auxiliary_5',
-      11 => 'auxiliary_6',
-      12 => 'auxiliary_7',
-      13 => 'auxiliary_8',
-      14 => 'auxiliary_9',
-      15 => 'hybride_disinfectant'
+  static function getSensorTypes() {
+    return array(
+      0   =>  __('Température local technique', __FILE__) . ';°C',
+      1   =>  __('Température air', __FILE__) . ';°C',
+      2   =>  __('Niveau d\'eau', __FILE__) . ';%',
+      3   =>  __('pH seul', __FILE__) . ';pH',
+      4   =>  __('Redox seul', __FILE__) . ';mV',
+      5   =>  __('Température eau', __FILE__) . ';°C',
+      6   =>  __('Pression filtre', __FILE__) . ';mbar',
+      10  =>  __('Générique', __FILE__) . ';%',
+      11  =>  __('Débit', __FILE__) . ';m³/h',
+      12  =>  __('Niveau bidon', __FILE__) . ';%',
+      13  =>  __('Position volet / couverture', __FILE__) . ';%',
+      14  =>  __('Chlore', __FILE__) . ';mg/L'
     );
-    $names = array(
-      0  => __('Eclairage', __FILE__),
-      1  => __('Filtration', __FILE__),
-      2  => __('Correcteur pH', __FILE__),
-      3  => __('Désinfectant', __FILE__),
-      4  => __('Chauffage', __FILE__),
-      5  => __('Auxiliaire 1', __FILE__),
-      6  => __('Auxiliaire 2', __FILE__),
-      7  => __('Auxiliaire 3', __FILE__),
-      8  => __('Floculant', __FILE__),
-      9  => __('Auxiliaire 4', __FILE__),
-      10 => __('Auxiliaire 5', __FILE__),
-      11 => __('Auxiliaire 6', __FILE__),
-      12 => __('Auxiliaire 7', __FILE__),
-      13 => __('Auxiliaire 8', __FILE__),
-      14 => __('Auxiliaire 9', __FILE__),
-      15 => __('Désinfectant hybride', __FILE__)
-    );
-    if (is_int($index) && in_array($index, array_keys($logicalIds)))
-      return array($logicalIds[$index], $names[$index]);
-    else
-      return array($logicalIds, $names);
   }
   
   /*   * *********************Méthodes d'instance************************* */
@@ -596,8 +587,8 @@ class klereo extends eqLogic {
     
     foreach ($probes as $probe) {
       $descr = explode(';', $probe['description']);
-      $this->createCmdInfo($probe['logicalId'] . '::filtered', $descr[0] . ' : ' . __('mesure en filtration', __FILE__), 'numeric', $order, $probe['minValue'], $probe['maxValue'], $descr[1]);
-      $this->createCmdInfo($probe['logicalId'] . '::direct', $descr[0] . ' : ' . __('mesure instantanée', __FILE__), 'numeric', $order, $probe['minValue'], $probe['maxValue'], $descr[1]);
+      $this->createCmdInfo($probe['logicalId'] . '_filtered', $descr[0] . ' : ' . __('mesure en filtration', __FILE__), 'numeric', $order, $probe['minValue'], $probe['maxValue'], $descr[1]);
+      $this->createCmdInfo($probe['logicalId'] . '_direct', $descr[0] . ' : ' . __('mesure instantanée', __FILE__), 'numeric', $order, $probe['minValue'], $probe['maxValue'], $descr[1]);
     }
     
     $details = $this->getPoolDetails();
@@ -616,19 +607,23 @@ class klereo extends eqLogic {
       if (isset($details['params']['Filtration_TodayTime']))
         $this->createCmdInfo('Filtration_TodayTime', __('Temps de filtration jour', __FILE__), 'numeric', $order, 0, 24, 'h');
       if (isset($details['params']['Filtration_TotalTime']))
-        $this->createCmdInfo('Filtration_TotalTime', __('Temps de filtration total', __FILE__), 'numeric', $order, 0, 45000, 'h');
-      if (isset($details['params']['PHMinus_TodayTime']))
-        $this->createCmdInfo('PHMinus_Today', __('Consommation pH-Minus jour', __FILE__), 'numeric', $order, 0, 36, 'ml');
-      if (isset($details['params']['PHMinus_TotalTime']))
-        $this->createCmdInfo('PHMinus_Total', __('Consommation pH-Minus totale', __FILE__), 'numeric', $order, 0, 20, 'l');
+        $this->createCmdInfo('Filtration_TotalTime', __('Temps de filtration total', __FILE__), 'numeric', $order, 0, 5000, 'h');
+      if (isset($pool['RegulModes']['pHMode']) && $pool['RegulModes']['pHMode'] > 0) {
+        if (isset($details['params']['PHMinus_TodayTime']))
+          $this->createCmdInfo('PHMinus_Today', __('Consommation pH-Minus jour', __FILE__), 'numeric', $order, 0, 36, 'mL');
+        if (isset($details['params']['PHMinus_TotalTime']))
+          $this->createCmdInfo('PHMinus_Total', __('Consommation pH-Minus totale', __FILE__), 'numeric', $order, 0, 20, 'L');
+      }
       if (isset($details['params']['ElectroChlore_TodayTime']))
-        $this->createCmdInfo('Chlore_Today', __('Consommation chlore jour', __FILE__), 'numeric', $order, 0, 36, 'ml');
+        $this->createCmdInfo('Chlore_Today', __('Consommation chlore jour', __FILE__), 'numeric', $order, 0, 36, 'mL');
       if (isset($details['params']['ElectroChlore_TotalTime']))
-        $this->createCmdInfo('Chlore_Total', __('Consommation chlore totale', __FILE__), 'numeric', $order, 0, 10, 'l');
-      if (isset($details['params']['Chauff_TodayTime']))
-        $this->createCmdInfo('Chauff_TodayTime', __('Temps de chauffage jour', __FILE__), 'numeric', $order, 0, 24, 'h');
-      if (isset($details['params']['Chauff_TotalTime']))
-        $this->createCmdInfo('Chauff_TotalTime', __('Temps de chauffage total', __FILE__), 'numeric', $order, 0, 45000, 'h');
+        $this->createCmdInfo('Chlore_Total', __('Consommation chlore totale', __FILE__), 'numeric', $order, 0, 10, 'L');
+      if (isset($pool['RegulModes']['HeaterMode']) && $pool['RegulModes']['HeaterMode'] > 0) {
+        if (isset($details['params']['Chauff_TodayTime']))
+          $this->createCmdInfo('Chauff_TodayTime', __('Temps de chauffage jour', __FILE__), 'numeric', $order, 0, 24, 'h');
+        if (isset($details['params']['Chauff_TotalTime']))
+          $this->createCmdInfo('Chauff_TotalTime', __('Temps de chauffage total', __FILE__), 'numeric', $order, 0, 5000, 'h');
+      }
     }
     if (isset($pool['RegulModes'])) {
       if (isset($pool['RegulModes']['PoolMode']))
@@ -650,41 +645,65 @@ class klereo extends eqLogic {
     $this->createCmdInfo('alertCount', __('Nombre d alertes', __FILE__), 'numeric', $order, 0, 5, '');
     $this->createCmdInfo('alerts', __('Alertes', __FILE__), 'string', $order);
     
-    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ': $details[\'outs\'] = ' . var_export($details['outs'], true));
+    if (isset($details['params'])) {
+      if (isset($pool['RegulModes']['HeaterMode']) && $pool['RegulModes']['HeaterMode'] > 0 && array_key_exists('ConsigneEau', $details['params']) && !in_array($details['params']['ConsigneEau'], array(-1000, -2000))) {
+        $this->createCmdInfo('ConsigneEau', __('Lecture consigne chauffage', __FILE__), 'numeric', $order, $details['params']['EauMin'], $details['params']['EauMax'], '°C');
+        $this->createCmdAction('ConsigneEau', __('Consigne chauffage', __FILE__), 'slider', $order, $details['params']['EauMin'], $details['params']['EauMax'], '°C', 'ConsigneEau', null, 0.5);
+      }
+      if ($details['access'] > 16) {
+        if (isset($pool['RegulModes']['pHMode']) && $pool['RegulModes']['pHMode'] > 0 && array_key_exists('ConsignePH', $details['params']) && !in_array($details['params']['ConsignePH'], array(-1000, -2000))) {
+          $this->createCmdInfo('ConsignePH', __('Lecture consigne pH', __FILE__), 'numeric', $order, $details['params']['pHMin'], $details['params']['pHMax'], 'pH');
+          $this->createCmdAction('ConsignePH', __('Ecriture consigne pH', __FILE__), 'slider', $order, $details['params']['pHMin'], $details['params']['pHMax'], 'pH', 'ConsignePH', null, 0.1);
+        }
+        if (array_key_exists('ConsigneRedox', $details['params']) && array_key_exists('ConsigneRedox', $details['params']) && !in_array($details['params']['ConsigneRedox'], array(-1000, -2000))) {
+          $this->createCmdInfo('ConsigneRedox', __('Lecture consigne Redox', __FILE__), 'numeric', $order, $details['params']['OrpMin'], $details['params']['OrpMax'], 'mV');
+          $this->createCmdAction('ConsigneRedox', __('Ecriture consigne Redox', __FILE__), 'slider', $order, $details['params']['OrpMin'], $details['params']['OrpMax'], 'mV', 'ConsigneRedox');
+        }
+        if (array_key_exists('ConsigneChlore', $details['params']) && array_key_exists('ConsigneChlore', $details['params']) && !in_array($details['params']['ConsigneChlore'], array(-1000, -2000))) {
+          $this->createCmdInfo('ConsigneChlore', __('Lecture consigne chlore', __FILE__), 'numeric', $order, 0, 5, 'mg/L');
+          $this->createCmdAction('ConsigneChlore', __('Ecriture consigne chlore', __FILE__), 'slider', $order, 0, 5, 'mg/L', 'ConsigneChlore', null, 0.1);
+        }
+      }
+    }
     
     foreach ($details['outs'] as $out) {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ': $out = ' . var_export($out, true));
       
-      $infos = self::getOutInfo($out['index']);
-      $this->createCmdInfo($infos[0], $infos[1]. ' ' . __('état', __FILE__), 'binary', $order);
-      if ($out['index'] == 1) { // 4 commandes action pour la filtration (1)
-        $this->createCmdInfo($infos[0] . '_off', $infos[1] . ' ' . __('OFF état', __FILE__), 'binary', $order);
-        $this->createCmdAction($infos[0] . '_off_action', $infos[1] . ' ' . __('OFF CMD', __FILE__), 'other', $order, null, null, null, $infos[0] . '_off');
-        
+      [$outN, $name] = $this->getOutInfo($out['index']);
+      $this->createCmdInfo($outN, $name . ' ' . __('état', __FILE__), 'binary', $order);
+      if ($out['index'] == 1) { // Filtration (1)
+        $this->createCmdInfo($outN . '_off', $name . ' ' . __('OFF état', __FILE__), 'binary', $order);
+        $this->createCmdAction($outN . '_off', $name . ' ' . __('OFF CMD', __FILE__), 'other', $order, null, null, null, $outN . '_off');
         if ($details['PumpMaxSpeed'] > 1) { // Analogic pump
-          $this->createCmdInfo($infos[0] . '_value', $infos[1] . ' ' . __('Mesure', __FILE__), 'numeric', $order, 0, $details['PumpMaxSpeed'], '');
-          $this->createCmdAction($infos[0] . '_setpoint', $infos[1] . ' ' . __('Consigne', __FILE__), 'slider', $order, 0, $details['PumpMaxSpeed'], '', $infos[0] . '_value');
+          $this->createCmdInfo($outN . '_value', $name . ' ' . __('Mesure', __FILE__), 'numeric', $order, 0, $details['PumpMaxSpeed'], '');
+          $this->createCmdAction($outN . '_value', $name . ' ' . __('Consigne', __FILE__), 'slider', $order, 0, $details['PumpMaxSpeed'], '', $outN . '_value');
         } else { // Pump on/off
-          $this->createCmdInfo($infos[0] . '_on', $infos[1] . ' ' . __('ON état', __FILE__), 'binary', $order);
-          $this->createCmdAction($infos[0] . '_on_action', $infos[1] . ' ' . __('ON CMD', __FILE__), 'other', $order, null, null, null, $infos[0] . '_on');
+          $this->createCmdInfo($outN . '_on', $name . ' ' . __('ON état', __FILE__), 'binary', $order);
+          $this->createCmdAction($outN . '_on', $name . ' ' . __('ON CMD', __FILE__), 'other', $order, null, null, null, $outN . '_on');
         }
+        $this->createCmdInfo($outN . '_auto', $name . ' ' . __('AUTO état', __FILE__), 'binary', $order);
+        $this->createCmdAction($outN . '_auto', $name . ' ' . __('AUTO CMD', __FILE__), 'other', $order, null, null, null, $outN . '_auto');
+        $this->createCmdInfo($outN . '_regulation', $name . ' ' . __('Régulation état', __FILE__), 'binary', $order);
+        $this->createCmdAction($outN . '_regulation', $name . ' ' . __('Régulation CMD', __FILE__), 'other', $order, null, null, null, $outN . '_regulation');
         
-        $this->createCmdInfo($infos[0] . '_auto', $infos[1] . ' ' . __('AUTO état', __FILE__), 'binary', $order);
-        $this->createCmdAction($infos[0] . '_auto_action', $infos[1] . ' ' . __('AUTO CMD', __FILE__), 'other', $order, null, null, null, $infos[0] . '_auto');
-        
-        $this->createCmdInfo($infos[0] . '_regulation', $infos[1] . ' ' . __('Régulation état', __FILE__), 'binary', $order);
-        $this->createCmdAction($infos[0] . '_regulation_action', $infos[1] . ' ' . __('Régulation CMD', __FILE__), 'other', $order, null, null, null, $infos[0] . '_regulation');
-        
-      } elseif ($out['index'] == 4) { // 2 commandes action pour le chauffage (4)
-        $this->createCmdInfo($infos[0] . '_off', $infos[1] . ' ' . __('OFF état', __FILE__), 'binary', $order);
-        $this->createCmdAction($infos[0] . '_off_action', $infos[1] . ' ' . __('OFF CMD', __FILE__), 'other', $order, null, null, null, $infos[0] . '_off');
-        
-        $this->createCmdInfo($infos[0] . '_regulation', $infos[1] . ' ' . __('Régulation état', __FILE__), 'string', $order);
-        $this->createCmdAction($infos[0] . '_regulation_action', $infos[1] . ' ' . __('Régulation CMD', __FILE__), 'select', $order, null, null, null, $infos[0] . '_regulation',
+      } elseif ($out['index'] == 4) { // Chauffage (4)
+        $this->createCmdInfo($outN . '_off', $name . ' ' . __('OFF état', __FILE__), 'binary', $order);
+        $this->createCmdAction($outN . '_off', $name . ' ' . __('OFF CMD', __FILE__), 'other', $order, null, null, null, $outN . '_off');
+        $this->createCmdInfo($outN . '_regulation', $name . ' ' . __('Régulation état', __FILE__), 'numeric', $order, 0, 3, '');
+        $this->createCmdAction($outN . '_regulation', $name . ' ' . __('Régulation CMD', __FILE__), 'select', $order, null, null, null, $outN . '_regulation',
                                 '0|' . __('Arrêt', __FILE__) . ';1|' . __('Automatique', __FILE__) . ';2|' . __('Refroidissement', __FILE__) . ';3|' . __('Chauffage', __FILE__));
         
       } elseif (in_array($out['index'], array(0, 5, 6, 7, 9, 10, 11, 12, 13, 14))) { // Eclairage (0) ou AuxN (5, 6, 7, 9, 10, 11, 12, 13, 14)
-        $this->createCmdAction($infos[0] . '_action', $infos[1] . ' ' . __('CMD', __FILE__), 'other', $order, null, null, null, $infos[0]);
+        $this->createCmdInfo($outN . '_off', $name . ' ' . __('OFF état', __FILE__), 'binary', $order);
+        $this->createCmdAction($outN . '_off', $name . ' ' . __('OFF CMD', __FILE__), 'other', $order, null, null, null, $outN . '_off');
+        $this->createCmdInfo($outN . '_on', $name . ' ' . __('ON état', __FILE__), 'binary', $order);
+        $this->createCmdAction($outN . '_on', $name . ' ' . __('ON CMD', __FILE__), 'other', $order, null, null, null, $outN . '_on');
+        $this->createCmdInfo('offDelay_' . $outN, $name . ' ' . __('Temps minuterie', __FILE__), 'numeric', $order, 1, 600, 'min');
+        $this->createCmdAction('offDelay_' . $outN, $name . ' ' . __('Consigne temps minuterie', __FILE__), 'slider', $order, 1, 600, 'min', 'offDelay_' . $outN);
+        $this->createCmdInfo($outN . '_timer', $name . ' ' . __('Minuterie état', __FILE__), 'binary', $order);
+        $this->createCmdAction($outN . '_timer', $name . ' ' . __('Minuterie CMD', __FILE__), 'other', $order, null, null, null, $outN . '_timer');
+        $this->createCmdInfo($outN . '_timeSlots', $name . ' ' . __('Plage état', __FILE__), 'binary', $order);
+        $this->createCmdAction($outN . '_timeSlots', $name . ' ' . __('Plage CMD', __FILE__), 'other', $order, null, null, null, $outN . '_timeSlots');
         
       }
     }
@@ -696,7 +715,7 @@ class klereo extends eqLogic {
   }
   
   function createCmdInfo($logicalId, $name, $subType, &$order, $min = null, $max = null, $unite = null) {
-    $command = $this->getCmd(null, $logicalId);
+    $command = $this->getCmd('info', $logicalId);
     if (!is_object($command)) {
       $command = (new klereoCmd)
         ->setLogicalId($logicalId)
@@ -715,8 +734,8 @@ class klereo extends eqLogic {
     }
   }
   
-  function createCmdAction($logicalId, $name, $subType, &$order, $min = null, $max = null, $unite = null, $linkedLogicalId = null, $listValue = null) {
-    $command = $this->getCmd(null, $logicalId);
+  function createCmdAction($logicalId, $name, $subType, &$order, $min = null, $max = null, $unite = null, $linkedLogicalId = null, $listValue = null, $sliderStep = null) {
+    $command = $this->getCmd('action', $logicalId);
     if (!is_object($command)) {
       $command = (new klereoCmd)
         ->setLogicalId($logicalId)
@@ -729,9 +748,11 @@ class klereo extends eqLogic {
         $command->setConfiguration('minValue', $min);
         $command->setConfiguration('maxValue', $max);
         $command->setUnite($unite);
+        if (!is_null($sliderStep))
+          $command->setDisplay('parameters', array('step' => $sliderStep));
       }
       if (!is_null($linkedLogicalId)) {
-        $linkedCmd = $this->getCmd(null, $linkedLogicalId);
+        $linkedCmd = $this->getCmd('info', $linkedLogicalId);
         $command->setValue($linkedCmd->getId());
       }
       if ($subType === 'select' && !is_null($listValue))
@@ -795,11 +816,42 @@ class klereo extends eqLogic {
     return config::byKey('getPoolDetails::' . $eqPoolId, __CLASS__);
   }
   
+  function getOutInfo($_index) {
+    $names = array(
+      0  => __('Eclairage', __FILE__),
+      1  => __('Filtration', __FILE__),
+      2  => __('Correcteur pH', __FILE__),
+      3  => __('Désinfectant', __FILE__),
+      4  => __('Chauffage', __FILE__),
+      5  => __('Auxiliaire 1', __FILE__),
+      6  => __('Auxiliaire 2', __FILE__),
+      7  => __('Auxiliaire 3', __FILE__),
+      8  => __('Floculant', __FILE__),
+      9  => __('Auxiliaire 4', __FILE__),
+      10 => __('Auxiliaire 5', __FILE__),
+      11 => __('Auxiliaire 6', __FILE__),
+      12 => __('Auxiliaire 7', __FILE__),
+      13 => __('Auxiliaire 8', __FILE__),
+      14 => __('Auxiliaire 9', __FILE__),
+      15 => __('Désinfectant hybride', __FILE__)
+    );
+    
+    $details = $this->getPoolDetails();
+    if (isset($details['IORename']) && count($details['IORename']) >= 1) {
+      foreach ($details['IORename'] as $ioRename) {
+        if ($ioRename['ioType'] == 1) // outs
+          $name[$ioRename['ioIndex']] = $ioRename['name'];
+      }
+    }
+    
+    return array(sprintf('out_%03d', $_index), $names[$_index]);
+  }
+  
   function getProbesInfos() {
     $eqPoolId = $this->getConfiguration('eqPoolId', '');
     if ($eqPoolId == '')
       return;
-    if (!in_array($eqPoolId, array_keys(self::getPools())))
+    if (!array_key_exists($eqPoolId, self::getPools()))
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de la réception des mesures du bassin&nbsp;: bassin inconnu.', __FILE__));
     $details = $this->getPoolDetails();
     $sensor_types = self::getSensorTypes();
@@ -831,7 +883,7 @@ class klereo extends eqLogic {
       }
       $sensor_type = explode(';', $sensor_types[$probe['type']]);
       $description = $sensor_type[0] . ' (' . $probe['index'] . ')';
-      if (isset($ioRename[$probe['index']]))
+      if (array_key_exists($probe['index'], $ioRename))
         $description = $ioRename[$probe['index']];
       
       $probes[] = array(
@@ -860,23 +912,6 @@ class klereo extends eqLogic {
     return intval($sqlResult['maxorder']) + 1;
 	}
   
-  static function getSensorTypes() {
-    return array(
-      0   =>  __('Température local technique', __FILE__) . ';°C',
-      1   =>  __('Température air', __FILE__) . ';°C',
-      2   =>  __('Niveau d\'eau', __FILE__) . ';%',
-      3   =>  __('pH seul', __FILE__) . ';pH',
-      4   =>  __('Redox seul', __FILE__) . ';mV',
-      5   =>  __('Température eau', __FILE__) . ';°C',
-      6   =>  __('Pression filtre', __FILE__) . ';mbar',
-      10  =>  __('Générique', __FILE__) . ';%',
-      11  =>  __('Débit', __FILE__) . ';m<sup>3</sup>/h',
-      12  =>  __('Niveau bidon', __FILE__) . ';%',
-      13  =>  __('Position volet / couverture', __FILE__) . ';%',
-      14  =>  __('Chlore', __FILE__) . ';'
-    );
-  }
-  
   function setOut($_out_index, $_mode, $_state) {
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $_out_index = *' . var_export($_out_index, true) . '*');
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $_mode = *' . var_export($_mode, true) . '*');
@@ -884,8 +919,8 @@ class klereo extends eqLogic {
     $eqPoolId = $this->getConfiguration('eqPoolId', '');
     if ($eqPoolId == '')
       return;
-    if (!in_array($eqPoolId, array_keys(self::getPools())))
-      throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de l\'envoi d\'une commande.', __FILE__));
+    if (!array_key_exists($eqPoolId, self::getPools()))
+      throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Ce bassin n\'est pas rataché à votre compte.', __FILE__));
     $details = $this->getPoolDetails();
     if (in_array($_out_index, array(2, 3, 8, 15)) && $details['access'] < 20)
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Pour cette sortie, il faut au minimum un accès "professionnel / piscinier".', __FILE__));
@@ -921,7 +956,85 @@ class klereo extends eqLogic {
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $response = *' . var_export($response, true) . '*');
     
     $body = $response[1];
-    if (isset($body['response']) && is_array($body['response'])) {
+    if (isset($body['status']) && $body['status'] === 'ok' && isset($body['response']) && is_array($body['response'])) {
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $body[\'response\'] = *' . var_export($body['response'], true) . '*');
+      $cmdID = $body['response'][0]['cmdID'];
+      return $cmdID;
+      
+    } else
+      throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de l\'envoi de la commande.', __FILE__));
+    
+  }
+  
+  function setParam($_param, $_newValue) {
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $_param = *' . var_export($_param, true) . '*');
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $_newValue = *' . var_export($_newValue, true) . '*');
+    $eqPoolId = $this->getConfiguration('eqPoolId', '');
+    if ($eqPoolId == '')
+      return;
+    if (!array_key_exists($eqPoolId, self::getPools()))
+      throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Ce bassin n\'est pas rattaché à votre compte.', __FILE__));
+    
+    $post_data = array(
+      'poolID'    => intval($eqPoolId),
+      'paramID'   => $_param,
+      'newValue'  => $_newValue,
+      'comMode'   => 1
+    );
+    $curl_setopt_array = array(
+      CURLOPT_URL         => self::$_API_ROOT . 'SetParam.php',
+      CURLOPT_POST        => true,
+      CURLOPT_HTTPHEADER  => array(
+        'User-Agent: ' . self::$_USER_AGENT,
+        self::getJwtToken()
+      ),
+      CURLOPT_POSTFIELDS  => $post_data
+    );
+    $response = self::curl_request($curl_setopt_array, __FUNCTION__);
+    
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $response = *' . var_export($response, true) . '*');
+    
+    $body = $response[1];
+    if (isset($body['status']) && $body['status'] === 'ok' && isset($body['response']) && is_array($body['response'])) {
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $body[\'response\'] = *' . var_export($body['response'], true) . '*');
+      $cmdID = $body['response'][0]['cmdID'];
+      return $cmdID;
+      
+    } else
+      throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de l\'envoi de la commande.', __FILE__));
+    
+  }
+  
+  function setAutoOff($_outIdx, $_offDelay) {
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $_outIdx = *' . var_export($_outIdx, true) . '*');
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $_newDelay = *' . var_export($_newDelay, true) . '*');
+    $eqPoolId = $this->getConfiguration('eqPoolId', '');
+    if ($eqPoolId == '')
+      return;
+    if (!array_key_exists($eqPoolId, self::getPools()))
+      throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Ce bassin n\'est pas rattaché à votre compte.', __FILE__));
+    
+    $post_data = array(
+      'poolID'    => intval($eqPoolId),
+      'outIdx'    => $_outIdx,
+      'offDelay'  => $_offDelay,
+      'comMode'   => 1
+    );
+    $curl_setopt_array = array(
+      CURLOPT_URL         => self::$_API_ROOT . 'SetAutoOff.php',
+      CURLOPT_POST        => true,
+      CURLOPT_HTTPHEADER  => array(
+        'User-Agent: ' . self::$_USER_AGENT,
+        self::getJwtToken()
+      ),
+      CURLOPT_POSTFIELDS  => $post_data
+    );
+    $response = self::curl_request($curl_setopt_array, __FUNCTION__);
+    
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $response = *' . var_export($response, true) . '*');
+    
+    $body = $response[1];
+    if (isset($body['status']) && $body['status'] === 'ok' && isset($body['response']) && is_array($body['response'])) {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $body[\'response\'] = *' . var_export($body['response'], true) . '*');
       $cmdID = $body['response'][0]['cmdID'];
       return $cmdID;
@@ -967,25 +1080,25 @@ class klereo extends eqLogic {
 class klereoCmd extends cmd {
   /*   * *************************Attributs****************************** */
   
-  static $_OUT_MODE_MAN = 0;
-  static $_OUT_MODE_TIME_SLOTS = 1;
-  static $_OUT_MODE_TIMER = 2;
-  static $_OUT_MODE_REGUL = 3;
-  static $_OUT_MODE_CLONE = 4;
-  static $_OUT_MODE_SPECIAL = 5;
-  static $_OUT_MODE_TEST = 6;
-  static $_OUT_MODE_BAD = 7;
-  static $_OUT_MODE_PULSE = 8;
-  static $_OUT_MODE_AUTO = 9;
+  static $_OUT_MODE_MAN         = 0;
+  static $_OUT_MODE_TIME_SLOTS  = 1;
+  static $_OUT_MODE_TIMER       = 2;
+  static $_OUT_MODE_REGUL       = 3;
+  static $_OUT_MODE_CLONE       = 4;
+  static $_OUT_MODE_SPECIAL     = 5;
+  static $_OUT_MODE_TEST        = 6;
+  static $_OUT_MODE_BAD         = 7;
+  static $_OUT_MODE_PULSE       = 8;
+  static $_OUT_MODE_AUTO        = 9;
   
-  static $_OUT_STATE_OFF = 0;
-  static $_OUT_STATE_ON = 1;
-  static $_OUT_STATE_AUTO = 2;
+  static $_OUT_STATE_OFF        = 0;
+  static $_OUT_STATE_ON         = 1;
+  static $_OUT_STATE_AUTO       = 2;
   
-  static $_HEAT_MODE_STOP = 0;
-  static $_HEAT_MODE_AUTO = 1;
-  static $_HEAT_MODE_COOLING = 2;
-  static $_HEAT_MODE_HEATING = 3;
+  static $_HEAT_MODE_STOP       = 0;
+  static $_HEAT_MODE_AUTO       = 1;
+  static $_HEAT_MODE_COOLING    = 2;
+  static $_HEAT_MODE_HEATING    = 3;
 
   /*   * ***********************Methode static*************************** */
 
@@ -1000,7 +1113,7 @@ class klereoCmd extends cmd {
   
   public function execute($_option=array()) {
     
-    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' *** execute ***: ' . var_export($_option, true));
+    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' *** execute ***: ' . var_export($_option, true));
     
     if ($this->getType() != 'action')
       return;
@@ -1008,160 +1121,263 @@ class klereoCmd extends cmd {
     $eqKlereo = $this->getEqLogic();
     
     $logicalId = $this->getLogicalId();
-    if ($logicalId == 'refresh') {
+    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $logicalId: ' . var_export($logicalId, true));
+    
+    // *-*-*-*-*-*-*-*-*-*-*-* Commande de raffraichissement *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    if ($logicalId === 'refresh') {
       $eqKlereo->getPoolDetails(true);
       klereo::actualizeValues();
       return;
-    }
-    
-    $outInfos = klereo::getOutInfo();
-    $logicalIds = $outInfos[0];
-    //$names = $outInfos[1];
-    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $logicalIds: ' . var_export($logicalIds, true));
-    
-    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $logicalId: ' . var_export($logicalId, true));
-    
-    $infoLogicalId = '';
-    
-    // 'normal' action
-    if (substr($logicalId, -7) === '_action') {
-      foreach ($logicalIds as $logIndex => $logId) {
-        if (substr($logicalId, 0, strlen($logId)) == $logId) {
-          $outInfoIndex = $logIndex;
-          $infoLogicalId = $logId;
+      
+    // *-*-*-*-*-*-*-*-*-*-*-* Commande 'out' *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    } elseif (substr($logicalId, 0, 4) === 'out_') {
+      $outN = substr($logicalId, 0, 7);
+      try{
+        $outIndex = intval(substr($logicalId, 4, 3));
+      }catch(Exception | Error $e) {
+        throw new Exception($this->getHumanName() . '&nbsp;:</br>' . __('\'logicalId\' de la commande à exécuter n\'a pas la bonne forme.', __FILE__));
+      }
+      log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $outIndex: ' . var_export($outIndex, true));
+      
+      $cmdInfo = $this->getCmdValue();
+      if (!is_object($cmdInfo))
+        throw new Exception($this->getHumanName() . '&nbsp;:</br>' . __('La commande action à exécuter n\'a pas de commande info liée.', __FILE__));
+      
+      $details = $eqKlereo->getPoolDetails();
+      $pool_id = $details['idSystem'];
+      
+      $getIndex = klereo::getIndex();
+      $pool = null;
+      foreach ($getIndex as $pool_info) {
+        if ($pool_info['idSystem'] == $pool_id) {
+          $pool = $pool_info;
           break;
         }
       }
-    }
-    // setpoint
-    elseif (substr($logicalId, -9) === '_setpoint') {
-      $infoLogicalId = str_replace('_setpoint', '_value', $logicalId);
-      foreach ($logicalIds as $logIndex => $logId) {
-        if (substr($logicalId, 0, strlen($logId)) == $logId) {
-          $outInfoIndex = $logIndex;
-          break;
+      
+      if ($outIndex == 1) { // *-*-*-*-*-*-*-*-*-*-*-* Filtration
+        $isAnalogicPump = $details['PumpMaxSpeed'] > 1;
+        
+        $execCmd = ''; // Type de commande à exécuter ('OFF', 'ON', 'Setpoint', 'AUTO' ou 'Regulation')
+        
+        // *** Commande OFF
+        $cmdActionOff = $eqKlereo->getCmd('action', $outN . '_off');
+        $cmdInfoOff = $cmdActionOff->getCmdValue();
+        if ($cmdInfoOff->execCmd() == '') // la commande est juste initialisée
+          $eqKlereo->checkAndUpdateCmd($cmdInfoOff, 0);
+        if ($logicalId == $cmdActionOff->getLogicalId()) {
+          $execCmd = 'OFF';
+          $cmdInfoOffValue = $cmdInfoOff->execCmd();
+          log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $cmdInfoOffValue: ' . var_export($cmdInfoOffValue, true));
+          $eqKlereo->checkAndUpdateCmd($cmdInfoOff, 1 - $cmdInfoOffValue); // La valeur de cette commande est uniquement gérée ici
         }
-      }
-    }
-    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $outInfoIndex: ' . var_export($outInfoIndex, true));
-    if (!isset($outInfoIndex))
-      throw new Exception($this->getHumanName() . '&nbsp;:</br>' . __('Action impossible à exécuter.', __FILE__));
-    
-    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $infoLogicalId: ' . var_export($infoLogicalId, true));
-    
-    $execCmdInfo = $eqKlereo->getCmd(null, $infoLogicalId);
-    $execCmdInfoValue = intval($execCmdInfo->execCmd());
-    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $execCmdInfoValue: ' . var_export($execCmdInfoValue, true));
-    
-    $details = $eqKlereo->getPoolDetails();
-    $pool_id = $details['idSystem'];
-    
-    $getIndex = klereo::getIndex();
-    $pool = null;
-    foreach ($getIndex as $pool_info) {
-      if ($pool_info['idSystem'] == $pool_id) {
-        $pool = $pool_info;
-        break;
-      }
-    }
-    
-    if ($outInfoIndex == 1) { // filtration
-      $isAnalogicPump = $details['PumpMaxSpeed'] > 1;
-      
-      $execCmd = ''; // Type de commande à exécuter ('OFF', 'ON', 'Setpoint', 'AUTO' ou 'Regulation')
-      if (substr($infoLogicalId, -6) === '_value')
-        $infoLogicalId = substr($infoLogicalId, 0, -6);
-      
-      // *** Commande OFF
-      $cmdActionOff = $eqKlereo->getCmd(null, $infoLogicalId . '_off_action');
-      $cmdInfoOff = $eqKlereo->getCmd(null, $infoLogicalId . '_off');
-      if ($cmdInfoOff->execCmd() == '') // la commande est juste initialisée
-        $eqKlereo->checkAndUpdateCmd($cmdInfoOff, 0);
-      $cmdInfoOffValue = $cmdInfoOff->execCmd();
-      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $cmdInfoOffValue: ' . var_export($cmdInfoOffValue, true));
-      if ($logicalId == $cmdActionOff->getLogicalId()) {
-        $execCmd = 'OFF';
-        $eqKlereo->checkAndUpdateCmd($cmdInfoOff, 1 - $cmdInfoOffValue); // La valeur de cette commande est uniquement gérée ici
-      }
-      
-      // *** Commande ON / Consigne
-      if ($isAnalogicPump) {
-        $cmdActionValue = $eqKlereo->getCmd(null, $infoLogicalId . '_setpoint');
-        $cmdInfoValue = $eqKlereo->getCmd(null, $infoLogicalId . '_value');
-        $cmdInfoValueValue = $cmdInfoValue->execCmd();
-        if ($logicalId == $cmdActionValue->getLogicalId())
-          $execCmd = 'Setpoint';
-      } else {
-        $cmdActionOn = $eqKlereo->getCmd(null, $infoLogicalId . '_on_action');
-        $cmdInfoOn = $eqKlereo->getCmd(null, $infoLogicalId . '_on');
+        
+        // *** Commande ON / Consigne
+        if ($isAnalogicPump) {
+          $cmdActionValue = $eqKlereo->getCmd('action', $outN . '_value');
+          $cmdInfoValue = $cmdActionValue->getCmdValue();
+          $cmdInfoValueValue = $cmdInfoValue->execCmd();
+          if ($logicalId == $cmdActionValue->getLogicalId())
+            $execCmd = 'Setpoint';
+        } else {
+          $cmdActionOn = $eqKlereo->getCmd('action', $outN . '_on');
+          $cmdInfoOn = $cmdActionOn->getCmdValue();
+          $cmdInfoOnValue = $cmdInfoOn->execCmd();
+          if ($logicalId == $cmdActionOn->getLogicalId())
+            $execCmd = 'ON';
+        }
+        
+        // *** Commande AUTO
+        $cmdActionAuto = $eqKlereo->getCmd('action', $outN . '_auto');
+        $cmdInfoAuto = $cmdActionAuto->getCmdValue();
+        $cmdInfoAutoValue = $cmdInfoAuto->execCmd();
+        if ($logicalId == $cmdActionAuto->getLogicalId())
+          $execCmd = 'AUTO';
+        
+        // *** Commande Régulation
+        $cmdActionRegul = $eqKlereo->getCmd('action', $outN . '_regulation');
+        $cmdInfoRegul = $cmdActionRegul->getCmdValue();
+        $cmdInfoRegulValue = $cmdInfoRegul->execCmd();
+        if ($logicalId == $cmdActionRegul->getLogicalId())
+          $execCmd = 'Regulation';
+        
+        // Mode et état courant
+        $curMode = self::$_OUT_STATE_OFF;
+        foreach ($details['outs'] as $out) {
+          if ($out['index'] == $outIndex) {
+            $curMode = $out['mode'];
+            break;
+          }
+        }
+        $curState = $isAnalogicPump ? $cmdInfoValueValue : $cmdInfoOnValue;
+        
+        // Nouvelle valeur de la commande
+        log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $execCmd: ' . var_export($execCmd, true));
+        $newOffValue = $cmdInfoOff->execCmd();
+        log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newOffValue: ' . var_export($newOffValue, true));
+        if ($isAnalogicPump) {
+          $newSetpointValue = $execCmd == 'Setpoint' ? $_option['slider'] : $cmdInfoValueValue;
+          log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newSetpointValue: ' . var_export($newSetpointValue, true));
+        } else {
+          $newOnValue = $execCmd == 'ON' ? 1 - $cmdInfoOnValue : $cmdInfoOnValue;
+          log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newOnValue: ' . var_export($newOnValue, true));
+        }
+        $newAutoValue = $execCmd == 'AUTO' ? 1 - $cmdInfoAutoValue : $cmdInfoAutoValue;
+        log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newAutoValue: ' . var_export($newAutoValue, true));
+        $newRegulValue = $execCmd == 'Regulation' ? 1 - $cmdInfoRegulValue : $cmdInfoRegulValue;
+        log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newRegulValue: ' . var_export($newRegulValue, true));
+        
+        // Nouveaux mode et état
+        $newMode = self::$_OUT_MODE_MAN;
+        $newState = self::$_OUT_STATE_OFF;
+        if ($newOffValue == 1) {
+          $newMode = self::$_OUT_MODE_MAN;
+          $newState = self::$_OUT_STATE_OFF;
+        } elseif ($isAnalogicPump && $execCmd == 'Setpoint') {
+          $newMode = self::$_OUT_MODE_MAN;
+          $newState = intval($newSetpointValue);
+        } elseif (!$isAnalogicPump && $newOnValue == 1) {
+          $newMode = self::$_OUT_MODE_MAN;
+          $newState = self::$_OUT_STATE_ON;
+        } elseif ($newAutoValue == 1) {
+          $newMode = self::$_OUT_MODE_TIME_SLOTS;
+          $newState = self::$_OUT_STATE_AUTO;
+        } elseif ($newRegulValue == 1) {
+          $newMode = self::$_OUT_MODE_REGUL;
+          $newState = self::$_OUT_STATE_AUTO;
+        }
+        
+      } else if ($outIndex == 4) { // *-*-*-*-*-*-*-*-*-*-*-* Chauffage
+        $execCmd = ''; // Type de commande à exécuter ('OFF' ou 'Regulation')
+        
+        // *** Commande OFF
+        $cmdActionOff = $eqKlereo->getCmd('action', $outN . '_off');
+        $cmdInfoOff = $cmdActionOff->getCmdValue();
+        if ($cmdInfoOff->execCmd() == '') // la commande est juste initialisée
+          $eqKlereo->checkAndUpdateCmd($cmdInfoOff, 0);
+        if ($logicalId == $cmdActionOff->getLogicalId()) {
+          $execCmd = 'OFF';
+          $cmdInfoOffValue = $cmdInfoOff->execCmd();
+          log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $cmdInfoOffValue: ' . var_export($cmdInfoOffValue, true));
+          $eqKlereo->checkAndUpdateCmd($cmdInfoOff, 1 - $cmdInfoOffValue); // La valeur de cette commande est uniquement gérée ici
+        }
+        
+        // *** Commande Régulation
+        $cmdActionRegul = $eqKlereo->getCmd('action', $outN . '_regulation');
+        $cmdInfoRegul = $cmdActionRegul->getCmdValue();
+        $cmdInfoRegulValue = $cmdInfoRegul->execCmd();
+        if ($logicalId == $cmdActionRegul->getLogicalId())
+          $execCmd = 'Regulation';
+        
+        // Mode et état courant
+        $curMode = self::$_HEAT_MODE_STOP;
+        $curState = self::$_OUT_STATE_AUTO;
+        foreach ($details['outs'] as $out) {
+          if ($out['index'] == $outIndex) {
+            $curMode = $out['mode'];
+            $curState = $out['status'];
+            break;
+          }
+        }
+        
+        // Nouvelle valeur de la commande
+        log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $execCmd: ' . var_export($execCmd, true));
+        $newOffValue = $cmdInfoOff->execCmd();
+        log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newOffValue: ' . var_export($newOffValue, true));
+        $newRegulValue = $execCmd == 'Regulation' ? $_option['select'] : $cmdInfoRegulValue;
+        log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newRegulValue: ' . var_export($newRegulValue, true));
+        
+        // Nouveaux mode et état
+        $newMode = $curMode;
+        $newState = self::$_OUT_STATE_OFF;
+        if ($newOffValue == 1) {
+          $newMode = self::$_HEAT_MODE_STOP;
+          $newState = self::$_OUT_STATE_OFF;
+        } elseif ($execCmd == 'Regulation') {
+          $newMode = intval($newRegulValue);
+          $newState = $newMode > 0 ? self::$_OUT_STATE_AUTO : self::$_OUT_STATE_OFF;
+        }
+        
+      } else { // *-*-*-*-*-*-*-*-*-*-*-* Commande 'nomale' (éclairage ou AuxN)
+        $execCmd = ''; // Type de commande à exécuter ('OFF', 'ON', 'Timer' ou 'TimeSlots')
+        
+        // *** Commande OFF
+        $cmdActionOff = $eqKlereo->getCmd('action', $outN . '_off');
+        $cmdInfoOff = $cmdActionOff->getCmdValue();
+        if ($cmdInfoOff->execCmd() == '') // la commande est juste initialisée
+          $eqKlereo->checkAndUpdateCmd($cmdInfoOff, 0);
+        if ($logicalId == $cmdActionOff->getLogicalId()) {
+          $execCmd = 'OFF';
+          $cmdInfoOffValue = $cmdInfoOff->execCmd();
+          log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $cmdInfoOffValue: ' . var_export($cmdInfoOffValue, true));
+          $eqKlereo->checkAndUpdateCmd($cmdInfoOff, 1 - $cmdInfoOffValue); // La valeur de cette commande est uniquement gérée ici
+        }
+        
+        // *** Commande ON
+        $cmdActionOn = $eqKlereo->getCmd('action', $outN . '_on');
+        $cmdInfoOn = $cmdActionOn->getCmdValue();
         $cmdInfoOnValue = $cmdInfoOn->execCmd();
         if ($logicalId == $cmdActionOn->getLogicalId())
           $execCmd = 'ON';
-      }
-      
-      // *** Commande AUTO
-      $cmdActionAuto = $eqKlereo->getCmd(null, $infoLogicalId . '_auto_action');
-      $cmdInfoAuto = $eqKlereo->getCmd(null, $infoLogicalId . '_auto');
-      $cmdInfoAutoValue = $cmdInfoAuto->execCmd();
-      if ($logicalId == $cmdActionAuto->getLogicalId())
-        $execCmd = 'AUTO';
-      
-      // *** Commande Régulation
-      $cmdActionRegul = $eqKlereo->getCmd(null, $infoLogicalId . '_regulation_action');
-      $cmdInfoRegul = $eqKlereo->getCmd(null, $infoLogicalId . '_regulation');
-      $cmdInfoRegulValue = $cmdInfoRegul->execCmd();
-      if ($logicalId == $cmdActionRegul->getLogicalId())
-        $execCmd = 'Regulation';
-      
-      // Mode et état courant
-      $curMode = self::$_OUT_STATE_OFF;
-      foreach ($details['outs'] as $out) {
-        if ($out['index'] == $outInfoIndex) {
-          $curMode = $out['mode'];
-          break;
+        
+        // *** Commande minuterie
+        $cmdActionTimer = $eqKlereo->getCmd('action', $outN . '_timer');
+        $cmdInfoTimer = $cmdActionTimer->getCmdValue();
+        $cmdInfoTimerValue = $cmdInfoTimer->execCmd();
+        if ($logicalId == $cmdActionTimer->getLogicalId())
+          $execCmd = 'Timer';
+        
+        // *** Commande plage
+        $cmdActionTimeSlots = $eqKlereo->getCmd('action', $outN . '_timeSlots');
+        $cmdInfoTimeSlots = $cmdActionTimeSlots->getCmdValue();
+        $cmdInfoTimeSlotsValue = $cmdInfoTimeSlots->execCmd();
+        if ($logicalId == $cmdActionTimeSlots->getLogicalId())
+          $execCmd = 'TimeSlots';
+        
+        // Mode et état courant
+        $curMode = self::$_OUT_MODE_MAN;
+        $curState = self::$_OUT_STATE_OFF;
+        foreach ($details['outs'] as $out) {
+          if ($out['index'] == $outIndex) {
+            $curMode = $out['mode'];
+            $curState = $out['status'];
+            break;
+          }
         }
-      }
-      $curState = $isAnalogicPump ? $cmdInfoValueValue : $cmdInfoOnValue;
-      
-      // Nouvelle valeur de la commande
-      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $execCmd: ' . var_export($execCmd, true));
-      $newOffValue = $cmdInfoOff->execCmd();
-      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newOffValue: ' . var_export($newOffValue, true));
-      if ($isAnalogicPump) {
-        $newSetpointValue = $execCmd == 'Setpoint' ? $_option['slider'] : $cmdInfoValueValue;
-        log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newSetpointValue: ' . var_export($newSetpointValue, true));
-      } else {
+        
+        // Nouvelle valeur de la commande
+        log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $execCmd: ' . var_export($execCmd, true));
+        $newOffValue = $cmdInfoOff->execCmd();
+        log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newOffValue: ' . var_export($newOffValue, true));
         $newOnValue = $execCmd == 'ON' ? 1 - $cmdInfoOnValue : $cmdInfoOnValue;
-        log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newOnValue: ' . var_export($newOnValue, true));
-      }
-      $newAutoValue = $execCmd == 'AUTO' ? 1 - $cmdInfoAutoValue : $cmdInfoAutoValue;
-      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newAutoValue: ' . var_export($newAutoValue, true));
-      $newRegulValue = $execCmd == 'Regulation' ? 1 - $cmdInfoRegulValue : $cmdInfoRegulValue;
-      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newRegulValue: ' . var_export($newRegulValue, true));
-      
-      // Nouveaux mode et état
-      $newMode = self::$_OUT_MODE_MAN;
-      $newState = self::$_OUT_STATE_OFF;
-      if ($newOffValue == 1) {
+        log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newOnValue: ' . var_export($newOnValue, true));
+        $newTimerValue = $execCmd == 'Timer' ? 1 - $cmdInfoTimerValue : $cmdInfoTimerValue;
+        log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newTimerValue: ' . var_export($newTimerValue, true));
+        $newTimeSlotsValue = $execCmd == 'TimeSlots' ? 1 - $cmdInfoTimeSlotsValue : $cmdInfoTimeSlotsValue;
+        log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newTimeSlotsValue: ' . var_export($newTimeSlotsValue, true));
+        
+        // Nouveaux mode et état
         $newMode = self::$_OUT_MODE_MAN;
         $newState = self::$_OUT_STATE_OFF;
-      } elseif ($isAnalogicPump && $execCmd == 'Setpoint') {
-        $newMode = self::$_OUT_MODE_MAN;
-        $newState = $newSetpointValue;
-      } elseif (!$isAnalogicPump && $newOnValue == 1) {
-        $newMode = self::$_OUT_MODE_MAN;
-        $newState = self::$_OUT_STATE_ON;
-      } elseif ($newAutoValue == 1) {
-        $newMode = self::$_OUT_MODE_TIME_SLOTS;
-        $newState = self::$_OUT_STATE_AUTO;
-      } elseif ($newRegulValue == 1) {
-        $newMode = self::$_OUT_MODE_REGUL;
-        $newState = self::$_OUT_STATE_AUTO;
+        if ($newOffValue == 1) {
+          $newMode = self::$_OUT_MODE_MAN;
+          $newState = self::$_OUT_STATE_OFF;
+        } elseif ($newOnValue == 1) {
+          $newMode = self::$_OUT_MODE_MAN;
+          $newState = self::$_OUT_STATE_ON;
+        } elseif ($newTimerValue == 1) {
+          $newMode = self::$_OUT_MODE_TIMER;
+          $newState = self::$_OUT_STATE_AUTO;
+        } elseif ($newTimeSlotsValue == 1) {
+          $newMode = self::$_OUT_MODE_TIME_SLOTS;
+          $newState = self::$_OUT_STATE_AUTO;
+        }
+        
       }
       
       // En cas de changement de mode ou d'état -> setOut
       if ($newMode != $curMode || $newState != $curState) {
-        $cmdID = $eqKlereo->setOut($outInfoIndex, $newMode, $newState);
+        $cmdID = $eqKlereo->setOut($outIndex, $newMode, $newState);
         $status = $eqKlereo->waitCommand($cmdID);
         if ($status == 9) {
           $eqKlereo->getPoolDetails(true);
@@ -1169,67 +1385,19 @@ class klereoCmd extends cmd {
         }
       }
       
-    } else if ($outInfoIndex == 4) { // chauffage
-      $execCmd = ''; // Type de commande à exécuter ('OFF' ou 'Regulation')
-      // *** Commande OFF
-      $cmdActionOff = $eqKlereo->getCmd(null, $infoLogicalId . '_off_action');
-      $cmdInfoOff = $eqKlereo->getCmd(null, $infoLogicalId . '_off');
-      if ($cmdInfoOff->execCmd() == '') // la commande est juste initialisée
-        $eqKlereo->checkAndUpdateCmd($cmdInfoOff, 0);
-      $cmdInfoOffValue = $cmdInfoOff->execCmd();
-      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $cmdInfoOffValue: ' . var_export($cmdInfoOffValue, true));
-      if ($logicalId == $cmdActionOff->getLogicalId()) {
-        $execCmd = 'OFF';
-        $eqKlereo->checkAndUpdateCmd($cmdInfoOff, 1 - $cmdInfoOffValue); // La valeur de cette commande est uniquement gérée ici
+    // *-*-*-*-*-*-*-*-*-*-*-* Commande 'Consigne' *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    } elseif (substr($logicalId, 0, 8) === 'Consigne') {
+      $cmdID = $eqKlereo->setParam($logicalId, floatval($_option['slider']));
+      $status = $eqKlereo->waitCommand($cmdID);
+      if ($status == 9) {
+        $eqKlereo->getPoolDetails(true);
+        klereo::actualizeValues();
       }
       
-      // *** Commande Régulation
-      $cmdActionRegul = $eqKlereo->getCmd(null, $infoLogicalId . '_regulation_action');
-      $cmdInfoRegul = $eqKlereo->getCmd(null, $infoLogicalId . '_regulation');
-      $cmdInfoRegulValue = $cmdInfoRegul->execCmd();
-      if ($logicalId == $cmdActionRegul->getLogicalId())
-        $execCmd = 'Regulation';
-      
-      // Mode et état courant
-      $curMode = self::$_HEAT_MODE_STOP;
-      $curState = self::$_OUT_STATE_AUTO;
-      foreach ($details['outs'] as $out) {
-        if ($out['index'] == $outInfoIndex) {
-          $curMode = $out['mode'];
-          $curState = $out['status'];
-          break;
-        }
-      }
-      
-      // Nouvelle valeur de la commande
-      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $execCmd: ' . var_export($execCmd, true));
-      $newOffValue = $cmdInfoOff->execCmd();
-      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newOffValue: ' . var_export($newOffValue, true));
-      $newRegulValue = $execCmd == 'Regulation' ? $_option['select'] : $cmdInfoRegulValue;
-      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' $newRegulValue: ' . var_export($newRegulValue, true));
-      
-      // Nouveaux mode et état
-      $newMode = $curMode;
-      $newState = self::$_OUT_STATE_OFF;
-      if ($newOffValue == 1) {
-        $newMode = self::$_HEAT_MODE_STOP;
-      } elseif ($execCmd == 'Regulation') {
-        $newMode = intval($newRegulValue);
-      }
-      
-      // En cas de changement de mode ou d'état -> setOut
-      if ($newMode != $curMode || $newState != $curState) {
-        $cmdID = $eqKlereo->setOut($outInfoIndex, $newMode, $newState);
-        $status = $eqKlereo->waitCommand($cmdID);
-        if ($status == 9) {
-          $eqKlereo->getPoolDetails(true);
-          klereo::actualizeValues();
-        }
-      }
-      
-    } else { // commande 'nomale' (éclairage ou AuxN)
-      $newState = 1 - $execCmdInfoValue;
-      $cmdID = $eqKlereo->setOut($outInfoIndex, self::$_OUT_MODE_MAN, $newState);
+    // *-*-*-*-*-*-*-*-*-*-*-* Commande 'offDelay' *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    } elseif (substr($logicalId, 0, 8) === 'offDelay') {
+      $outIndex = intval(substr($logicalId, -3));
+      $cmdID = $eqKlereo->setAutoOff($outIndex, floatval($_option['slider']));
       $status = $eqKlereo->waitCommand($cmdID);
       if ($status == 9) {
         $eqKlereo->getPoolDetails(true);
@@ -1237,7 +1405,6 @@ class klereoCmd extends cmd {
       }
       
     }
-    
   }
 
 //  public function postInsert() {}
