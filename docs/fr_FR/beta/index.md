@@ -169,4 +169,100 @@ Pour le chauffage, les paires de commandes info+action suivantes sont créées :
 
 # Test
 
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
 
