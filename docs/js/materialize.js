@@ -8233,8 +8233,7 @@ $jscomp.polyfill = function (e, r, p, m) {
       value: function _updatePosition() {
         var scrolled = M.getDocumentScrollTop() + this.options.offset;
         console.log('scrolled: ' + scrolled);
-        console.log('this.options.top: ' + this.options.top);
-        console.log('this.options.bottom: ' + this.options.bottom);
+        console.log('this.options.top: ' + JSON.stringify(this.options));
 
         if (this.options.top <= scrolled && this.options.bottom >= scrolled && !this.el.classList.contains('pinned')) {
           this._removePinClasses();
@@ -8252,19 +8251,19 @@ $jscomp.polyfill = function (e, r, p, m) {
           this._removePinClasses();
           this.el.style.top = 0;
           this.el.classList.add('pin-top');
-
+      
           // onPositionChange callback
           if (typeof this.options.onPositionChange === 'function') {
             this.options.onPositionChange.call(this, 'pin-top');
           }
         }
-
+      
         // Add pin-bottom (when scrolled position is below bottom)
         if (scrolled > this.options.bottom && !this.el.classList.contains('pin-bottom')) {
           this._removePinClasses();
           this.el.classList.add('pin-bottom');
           this.el.style.top = this.options.bottom - this.originalOffset + "px";
-
+      
           // onPositionChange callback
           if (typeof this.options.onPositionChange === 'function') {
             this.options.onPositionChange.call(this, 'pin-bottom');
