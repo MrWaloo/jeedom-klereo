@@ -8233,7 +8233,7 @@ $jscomp.polyfill = function (e, r, p, m) {
       value: function _updatePosition() {
         var scrolled = M.getDocumentScrollTop() + this.options.offset;
         console.log('scrolled: ' + scrolled);
-        console.log('this.options: ' + this.options);
+        console.log('this.options: ' + JSON.stringify(this.options));
 
         if (this.options.top <= scrolled && this.options.bottom >= scrolled && !this.el.classList.contains('pinned')) {
           this._removePinClasses();
