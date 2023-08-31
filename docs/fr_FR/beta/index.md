@@ -49,7 +49,7 @@ commandes manuellement.
 
 La plage des commandes info numériques s'adapte automatiquement à la valeur mesurée afin de ne pas générer d'erreur et
 de permettre à Jeedom d'afficher toutes les mesures. La plage peut être personnalisée. Toutefois si elle n'est pas
-adaptée une mesure faite, le plugin la modifiera.
+adaptée à une mesure faite, le plugin la modifiera.
 
 Si des commandes sont supprimées de la base de données, elles seront recréées lors de la sauvegarde de l'équipement.
 
@@ -79,7 +79,7 @@ Les informations techniques sur le bassin suivantes sont également communiquée
 - le type de pompe de filtration,
 - la gamme d'électrolyseur.
 
-Le nombre et le détail des alertes du bassins sont des valeurs de deux commandes. S'il y a plusieurs alertes, les
+Le nombre et le détail des alertes du bassin sont les valeurs de deux commandes. S'il y a plusieurs alertes, les
 messages d'alerte sont séparés par des '\|\|'.
 
 ## Les commandes action
@@ -109,12 +109,13 @@ Pour la filtration, , les paires de commandes info+action suivantes sont créée
 - 'AUTO' : si une commande de fonctionnement manuel n'est pas actif, gestion de la filtration automatique par le
 coffret Klereo. Les temps de filtration sont calculés en fonction de la température de l’eau, du volume, du débit de la
 pompe et du mode d'utilisation du bassin,
-- 'Régulation' : 
+- 'Régulation' : ***Information manquante !!!***
 
 Pour les sorties éclairage et auxiliaires, les paires de commandes info+action suivantes sont créées :
 - 'OFF': verrou qui lorsqu'il vaut '1' empêche le plugin de piloter la sortie,
 - 'ON' : commande de marche manuelle,
-- 'Temps de minuterie' : durée durant laquelle la sortie est activée lorsque la commande 'Minuterie' est envoyée,
+- 'Temps de minuterie' : durée (en minutes) durant laquelle la sortie est activée lorsque la commande 'Minuterie' est
+envoyée,
 - 'Minuterie' : pour piloter la sortie durant le temps configuré si la commande 'ON' vaut '0',
 - 'Plage' : pour piloter la sortie selon les plages horaires définies si les commandes 'ON' et 'Minuterie' valent '0'.
 
@@ -130,7 +131,9 @@ Pour le chauffage, les paires de commandes info+action suivantes sont créées :
 > :memo: ***Remarque***  
 > Les modes 'Automatique' et 'Refroidissement' n'auront d’effet que sur les types de chauffage avec pompe à chaleur.
 
-> :heart: ***Remerciements***
+***
+
+> :heart: ***Remerciements***  
 > Je tiens à remercier Klereo de m'avoir permis de développer ce plugin et surtout Laurent du service web qui m'a donné
 > les informations de l'API en avant-première alors que l'API n'est pas officiellement publique.
 
