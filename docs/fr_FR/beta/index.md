@@ -34,7 +34,7 @@ sauvegardée.
 Le fait de sauvegarder les identifiants réinitialise le plugin complet. Tous les équipements et toutes les commandes du
 plugin sont effacées sans qu'une validation soit demandée, alors soyez prudent.
 
-## Le principe
+# Le principe
 
 Un équipement de plugin correspond à un bassin. En fonction des mesures gérées par votre coffret Klereo, du type
 des équipements installés et de vos droits d'accès, les commandes info et action nécessaires et possibles sont
@@ -53,7 +53,7 @@ adaptée à une mesure faite, le plugin la modifiera.
 
 Si des commandes sont supprimées de la base de données, elles seront recréées lors de la sauvegarde de l'équipement.
 
-## Les commandes info
+# Les commandes info
 
 Pour chaque mesure, une commande 'instantanée' et 'en filtration' sont créées. Les commandes 'en filtration' ne sont
 actualisées par l'API que lorsque la filtration est active. Le plugin ne fait que afficher les valeurs fournies par
@@ -82,18 +82,18 @@ Les informations techniques sur le bassin suivantes sont également communiquée
 Le nombre et le détail des alertes du bassin sont les valeurs de deux commandes. S'il y a plusieurs alertes, les
 messages d'alerte sont séparés par des '\|\|'.
 
-## Les commandes action
+# Les commandes action
 
 Chaque commande action est liée à une commande info afin que la valeur initiale corresponde à la valeur effective.
 
-### Les consignes
+## Les consignes
 
 Les bassins Klereo ont quatres consignes possibles :
 - la consigne de chauffage modifiable par tous les utilisateurs si un système de chauffage est installé,
 - les consignes de pH, de Redox et de chlore ne sont modifiables que par le pisciniste ou le support Klereo si le
 bassin est équipé d'un système de régulation pour ces valeurs.
 
-### Les sorties
+## Les sorties
 
 Pour toutes les sorties, une commande info reflétant l'état de la sortie est créée, même pour les sorties suivantes
 pour lesquelles seul l'état de la sortie est disponible :
@@ -137,6 +137,36 @@ Pour le chauffage, les paires de commandes info+action suivantes sont créées :
 > Je tiens à remercier Klereo de m'avoir permis de développer ce plugin et surtout Laurent du service web qui m'a donné
 > les informations de l'API en avant-première alors que l'API n'est pas officiellement publique.
 
+# Test
 
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
+
+# Test
 
 
