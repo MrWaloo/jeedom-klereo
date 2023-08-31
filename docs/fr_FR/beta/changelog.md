@@ -1,5 +1,9 @@
 # Changelog Klereo bêta
 
+> :memo: ***Remarque***  
+> Si une mise à jour du plugin en version bêta est disponible sans détails correspondant sur cette page, cela signifie
+> que seule la documantation a étémise à jour.
+
 ## TODO
 - Rédiger la documentation (en cours)
 - Revoir les messages de log
