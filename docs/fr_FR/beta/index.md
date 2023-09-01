@@ -109,7 +109,8 @@ Pour la filtration, , les paires de commandes info+action suivantes sont créée
 - 'AUTO' : si une commande de fonctionnement manuel n'est pas actif, gestion de la filtration automatique par le
 coffret Klereo. Les temps de filtration sont calculés en fonction de la température de l’eau, du volume, du débit de la
 pompe et du mode d'utilisation du bassin,
-- 'Régulation' : ***Information manquante !!!***
+- 'Régulation' : les plages et durées de filtration seront calculées dynamiquement en fonctions des paramètres et des
+capteurs du bassins.
 
 Pour les sorties éclairage et auxiliaires, les paires de commandes info+action suivantes sont créées :
 - 'OFF': verrou qui lorsqu'il vaut '1' empêche le plugin de piloter la sortie,
