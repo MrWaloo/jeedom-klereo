@@ -132,6 +132,39 @@ Pour le chauffage, les paires de commandes info+action suivantes sont créées :
 > :memo: ***Remarque***  
 > Les modes 'Automatique' et 'Refroidissement' n'auront d’effet que sur les types de chauffage avec pompe à chaleur.
 
+### Exemple pour la filtration
+
+En résumé, pour la filtration, les commandes suivantes sont créées :
+- 'Filtration état' : représente l'état de la pompe quel que soit le mode,
+- 'Filtration OFF état' : représente l'état du verrou. Ce verrou est modifiable avec la commande action 'Filtration
+  OFF CMD',
+- 'Filtration OFF CMD' : commande action permettant de modifier le verrou,
+- 'Filtration ON état' : représente l'état de la commande manuelle. La commande manuelle est modifiable avec la
+  commande action 'Filtration ON CMD',
+- 'Filtration ON CMD' : commande action permettant de modifier le pilotage manuel de la pompe,
+- 'Filtration AUTO état' : représente l'état du mode de pilotage selon les plages horaires. Le pilotage 'AUTO' est
+  modifiable avec la commande action 'Filtration AUTO CMD',
+- 'Filtration AUTO CMD' : commande action permettant de modifier le pilotage de la pompe selon les plages horaires
+  définies sur le site Klereo,
+- 'Filtration Régulation état' : représente l'état du mode de pilotage régulé. Le pilotage régulé est modifiable avec
+  la commande action 'Filtration Régulation CMD',
+- 'Filtration Régulation CMD' : commande action permettant de modifier le pilotage de la pompe selon la régulation
+  interne de l'automate.
+
+Cette liste défini également l'ordre de priorité du plugin :
+- si la commande **OFF** est à 1 alors la pompe est arrêtée et les autres commandes sont ignorées,
+- si la commande **OFF** est à 0 et que la commande **ON** est à 1 alors la pompe est démarrée en mode manuel et les
+  autres commandes sont ignorées,
+- si les commandes **OFF** et **ON** sont à 0 et que la commande **AUTO** est à 1 alors la pompe est pilotée par
+  l'automate selon les plages horaires définies,
+- si les commandes **OFF**, **ON** et **AUTO** sont à 0 et que la commande **Régulation** est à 1 alors la pompe est
+  pilotée par l'automate selon les règles de régulation internes,
+- si toutes les commandes sont à 0 alors la pompe est arrêtée.
+
+> :memo: ***Remarque***  
+> Cette ordre est codé dans le plugin et ne dépend pas de l'ordre dans lequel les commandes apparaissent dans
+> l'équipement.
+
 ***
 
 > :heart: ***Remerciements***  

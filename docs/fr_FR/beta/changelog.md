@@ -5,9 +5,17 @@
 > que seule la documantation a été mise à jour.
 
 ## TODO
+- Renommer la commande 'AUTO' de la filtration en 'Plage' et adapter la documentation en conséquence
+- Permettre de modifier les plages horaires du mode 'Plage' pour les sorties qui peuvent être pilotées dans ce mode
 - Rédiger la documentation (en cours)
 - Revoir les messages de log
 - Créer un widget
+
+## xx/0y/2023 V0.4 beta
+
+### Fonctionalités
+
+### Corrections
 
 ## 29/08/2023 V0.3 beta
 
