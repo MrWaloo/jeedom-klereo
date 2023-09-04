@@ -151,7 +151,7 @@ En résumé, pour la filtration, les commandes suivantes sont créées :
 - 'Filtration Régulation CMD' : commande action permettant de modifier le pilotage de la pompe selon la régulation
   interne de l'automate.
 
-Cette liste défini également l'ordre de priorité du plugin :
+Cette liste défini également l'ordre de priorité de traitement des actions du plugin :
 - si la commande **OFF** est à 1 alors la pompe est arrêtée et les autres commandes sont ignorées,
 - si la commande **OFF** est à 0 et que la commande **ON** est à 1 alors la pompe est démarrée en mode manuel et les
   autres commandes sont ignorées,

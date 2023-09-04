@@ -34,7 +34,7 @@ class klereo extends eqLogic {
   */
   public static $_encryptConfigKey = array('login', 'password', 'jwt::Authorization');
 
-  public static $_version = '0.3 beta';
+  public static $_version = '0.4 beta';
   
   static $_WEB_VERSION = '389-W';
   static $_API_ROOT = 'https://connect.klereo.fr/php/';
@@ -495,6 +495,9 @@ class klereo extends eqLogic {
           }
           
           foreach ($details['outs'] as $out) {
+            if (is_null($out['type']))
+              continue;
+            
             [$outN, $name] = $eqKlereo->getOutInfo($out['index']);
             $cmd = $eqKlereo->getCmd('info', $outN);
             $eqKlereo->checkAndUpdateCmd($cmd, $out['status']);
@@ -668,6 +671,8 @@ class klereo extends eqLogic {
     
     foreach ($details['outs'] as $out) {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ': $out = ' . var_export($out, true));
+      if (is_null($out['type']))
+        continue;
       
       [$outN, $name] = $this->getOutInfo($out['index']);
       $this->createCmdInfo($outN, $name . ' ' . __('état', __FILE__), 'binary', $order);
@@ -1113,7 +1118,7 @@ class klereoCmd extends cmd {
   
   public function execute($_option=array()) {
     
-    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' *** execute ***: ' . var_export($_option, true));
+    log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / $_option: ' . var_export($_option, true));
     
     if ($this->getType() != 'action')
       return;

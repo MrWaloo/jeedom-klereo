@@ -11,11 +11,11 @@
 - Revoir les messages de log
 - Créer un widget
 
-## xx/0y/2023 V0.4 beta
-
-### Fonctionalités
+## 05/09/2023 V0.4 beta
 
 ### Corrections
+
+- Les sorties dont le type n'est pas défini (null) sont ignorées
 
 ## 29/08/2023 V0.3 beta
 

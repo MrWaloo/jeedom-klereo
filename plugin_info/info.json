@@ -12,10 +12,10 @@
   "category" : "wellness",
   "hasDependency" : false,
   "hasOwnDeamon" : false,
-  "changelog" : "https://mrwaloo.github.io/jeedom-klereo/fr_FR/stable/changelog",
-  "documentation" : "https://mrwaloo.github.io/jeedom-klereo/fr_FR/stable/index",
-  "changelog_beta" : "https://mrwaloo.github.io/jeedom-klereo/fr_FR/beta/changelog",
-  "documentation_beta" : "https://mrwaloo.github.io/jeedom-klereo/fr_FR/beta/index",
+  "changelog" : "https://mrwaloo.github.io/jeedom-klereo/#language#/stable/changelog",
+  "documentation" : "https://mrwaloo.github.io/jeedom-klereo/#language#/stable/index",
+  "changelog_beta" : "https://mrwaloo.github.io/jeedom-klereo/#language#/beta/changelog",
+  "documentation_beta" : "https://mrwaloo.github.io/jeedom-klereo/#language#/beta/index",
   "languages" : ["fr_FR"],
     "compatibility": [
       "miniplus",
@@ -23,7 +23,6 @@
       "rpi",
       "docker",
       "diy",
-      "mobile app",
       "atlas",
       "luna",
       "v4"
