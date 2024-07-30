@@ -2,19 +2,36 @@
 
 > :memo: ***Remarque***  
 > Si une mise à jour du plugin en version bêta est disponible sans détails correspondants sur cette page, cela signifie
-> que seule la documantation a été mise à jour.
+> que seule la documentation a été mise à jour.
 
 ## TODO
-- Renommer la commande 'AUTO' de la filtration en 'Plage' et adapter la documentation en conséquence
 - Permettre de modifier les plages horaires du mode 'Plage' pour les sorties qui peuvent être pilotées dans ce mode
 - Rédiger la documentation (en cours)
 - Revoir les messages de log
 - Créer un widget
 
+## xx/07/2024 V0.5 beta
+
+> :warning: ***Important***  
+> Il faut supprimer et recréer les équipements une fois cette mise à jour installée !
+
+### Corrections
+- Les utilisateurs avancés peuvent modifier les consignes de pH, Redox et chlore
+- Syntaxe php : accolades utilisées systématiquement (`if` et `foreach`)
+- Le token JWT est pris dans le corps de la réponse et plus dans l'entête
+- Meilleure gestion du CapteurID dans les défauts concernant un capteur
+
+### Fonctionalités
+- La commande 'AUTO' de la filtration est renommée en 'Plage'
+- Log plus clairs
+- Mise à jour API:
+  - Passage à la version 392-W
+  - Intégration des pompes à chaleur InoPac en plus des pompes à chaleur KlereoTherm
+  - Prise en charge du défaut 61 "Défaut pompe à chaleur"
+
 ## 05/09/2023 V0.4 beta
 
 ### Corrections
-
 - Les sorties dont le type n'est pas défini (null) sont ignorées
 
 ## 29/08/2023 V0.3 beta
