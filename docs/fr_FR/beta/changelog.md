@@ -5,10 +5,10 @@
 > que seule la documentation a été mise à jour.
 
 ## TODO
-- Permettre de modifier les plages horaires du mode 'Plage' pour les sorties qui peuvent être pilotées dans ce mode
 - Rédiger la documentation (en cours)
 - Revoir les messages de log
 - Créer un widget
+- Permettre de modifier les plages horaires du mode 'Plage' pour les sorties qui peuvent être pilotées dans ce mode
 
 ## xx/07/2024 V0.5 beta
 

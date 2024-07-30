@@ -24,15 +24,15 @@ class klereo extends eqLogic {
 
  /*
   * Permet de définir les possibilités de personnalisation du widget (en cas d'utilisation de la fonction 'toHtml' par exemple)
-  * Tableau multidimensionnel - exemple: array('custom' => true, 'custom::layout' => false)
-  public static $_widgetPossibility = array();
+  * Tableau multidimensionnel - exemple: ['custom' => true, 'custom::layout' => false]
+  public static $_widgetPossibility = [];
   */
 
  /*
   * Permet de crypter/décrypter automatiquement des champs de configuration du plugin
   * Exemple : "param1" & "param2" seront cryptés mais pas "param3"
   */
-  public static $_encryptConfigKey = array('login', 'password', 'jwt::Authorization');
+  public static $_encryptConfigKey = ['login', 'password', 'jwt::Authorization'];
 
   public static $_version = '0.5 beta';
   
@@ -116,7 +116,7 @@ class klereo extends eqLogic {
     if (config::byKey('login', __CLASS__, '') === '' || config::byKey('password', __CLASS__, '') === '') {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Les informations de connexions doivent être renseignées dans la configuration du plugin Klereo.', __FILE__));
     }
-    $default_setopt_array = array(
+    $default_setopt_array = [
       CURLOPT_USERAGENT       => self::$_USER_AGENT,
       CURLOPT_RETURNTRANSFER  => true,
       CURLOPT_FOLLOWLOCATION  => true,
@@ -125,7 +125,7 @@ class klereo extends eqLogic {
       CURLOPT_SSL_VERIFYPEER  => true,
       CURLOPT_SSL_VERIFYHOST  => 2,
       CURLOPT_HEADER          => true
-    );
+    ];
     $curl_setopt_array = self::setopt_merge($default_setopt_array, $_curl_setopt_array);
     $ch = curl_init();
     curl_setopt_array($ch, $curl_setopt_array);
@@ -152,28 +152,26 @@ class klereo extends eqLogic {
       throw new Exception(__CLASS__ . '::' . $_function_name . '&nbsp;:</br>' . __('Echec de la requête&nbsp;: ', __FILE__) . (isset($response['detail']) ? $response['detail'] : __('pas de détail retourné.', __FILE__)));
     }
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . $_function_name . ' / ' . __FUNCTION__ . ' return OK');
-    return array($header, $response);
+    return [$header, $response];
   }
   
   static function getJwtToken() {
     $config_jwt_login_dt = config::byKey('jwt::login_dt', __CLASS__, '0000-01-01 00:00:00');
     $expire_dt = strtotime(self::$_ACTUALIZE_TIME_JWT . ' ' . $config_jwt_login_dt);
     if (strtotime(self::now()) >= $expire_dt || config::byKey('jwt::Authorization', __CLASS__, '') === '') {
-      $post_data = array(
+      $post_data = [
         'login'     => config::byKey('login', __CLASS__),
         'password'  => sha1(config::byKey('password', __CLASS__)),
         'version'   => self::$_WEB_VERSION
-      );
-      $curl_setopt_array = array(
+      ];
+      $curl_setopt_array = [
         CURLOPT_URL         => self::$_API_ROOT . 'GetJWT.php',
         CURLOPT_POST        => true,
         CURLOPT_POSTFIELDS  => $post_data
-      );
+      ];
       [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("header = *'%s'*", $header));
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body = *'%s'*", var_export($body, true)));
-      //preg_match('/.*?^Authorization\: Bearer (\S*?)\s*$.*/ms', $header, $matches);
-      //$jwt_from_header = $matches[1];
       $jwt = $body['jwt'];
       config::save('jwt::login_dt', self::now(), __CLASS__);
       config::save('jwt::Authorization', $jwt, __CLASS__);
@@ -188,14 +186,14 @@ class klereo extends eqLogic {
     $config_getIndex_dt = config::byKey('getIndex_dt', __CLASS__, '0000-01-01 00:00:00');
     $expire_dt = strtotime(self::$_ACTUALIZE_TIME_GETINDEX . ' ' . $config_getIndex_dt);
     if (strtotime(self::now()) >= $expire_dt || config::byKey('getIndex', __CLASS__, '') === '') {
-      $curl_setopt_array = array(
+      $curl_setopt_array = [
         CURLOPT_URL         => self::$_API_ROOT . 'GetIndex.php',
         CURLOPT_POST        => false,
-        CURLOPT_HTTPHEADER  => array(
+        CURLOPT_HTTPHEADER  => [
           'User-Agent: ' . self::$_USER_AGENT,
           'Authorization: Bearer ' . self::getJwtToken()
-        )
-      );
+        ]
+      ];
       [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
       if (isset($body['response']) && is_array($body['response'])) {
         $getIndex = $body['response'];
@@ -214,7 +212,7 @@ class klereo extends eqLogic {
   
   static function getPools() {
     $getIndex = self::getIndex();
-    $getPools = array();
+    $getPools = [];
     foreach ($getIndex as $pool) {
       $getPools[$pool['idSystem']] = $pool['poolNickname'];
     }
@@ -309,18 +307,18 @@ class klereo extends eqLogic {
         }
         $PoolMode = $eqKlereo->getCmd('info', 'PoolMode');
         if ($PoolMode) {
-          $PoolMode_arr = array(
+          $PoolMode_arr = [
             0 => __('Arrêt', __FILE__),
             1 => __('Mode éco', __FILE__),
             2 => __('Mode confort', __FILE__),
             4 => __('Mode hivernage', __FILE__),
             5 => __('Mode installation', __FILE__)
-          );
-          $eqKlereo->checkAndUpdateCmd($PoolMode, $PoolMode_arr[$pool['RegulModes']['PoolMode']]);
+          ];
+          $eqKlereo->checkAndUpdateCmd($PoolMode, $PoolMode_arr[$details['params']['PoolMode']]);
         }
         $TraitMode = $eqKlereo->getCmd('info', 'TraitMode');
         if ($TraitMode) {
-          $TraitMode_arr = array(
+          $TraitMode_arr = [
             0 => __('Aucun', __FILE__),
             1 => __('Chlore liquide', __FILE__),
             2 => __('Electrolyseur', __FILE__),
@@ -329,35 +327,35 @@ class klereo extends eqLogic {
             5 => __('Brome', __FILE__),
             6 => __('Electrolyseur KL2', __FILE__),
             8 => __('Electrolyseur KL3', __FILE__)
-          );
-          $eqKlereo->checkAndUpdateCmd($TraitMode, $TraitMode_arr[$pool['RegulModes']['TraitMode']]);
+          ];
+          $eqKlereo->checkAndUpdateCmd($TraitMode, $TraitMode_arr[$details['params']['TraitMode']]);
         }
         $pHMode = $eqKlereo->getCmd('info', 'pHMode');
         if ($pHMode) {
-          $pHMode_arr = array(
+          $pHMode_arr = [
             0 => __('Aucun', __FILE__),
             1 => __('pH-Minus', __FILE__),
             2 => __('pH-Plus', __FILE__)
-          );
-          $eqKlereo->checkAndUpdateCmd($pHMode, $pHMode_arr[$pool['RegulModes']['pHMode']]);
+          ];
+          $eqKlereo->checkAndUpdateCmd($pHMode, $pHMode_arr[$details['params']['pHMode']]);
         }
         $HeaterMode = $eqKlereo->getCmd('info', 'HeaterMode');
         if ($HeaterMode) {
-          $HeaterMode_arr = array(
+          $HeaterMode_arr = [
             0 => __('Aucun', __FILE__),
             1 => __('PAC ou réchauffeur ON/OFF', __FILE__),
             2 => __('Pompe à chaleur EasyTherm', __FILE__),
             3 => __('Chauffage ON/OFF sans consigne', __FILE__),
             4 => __('Autre pompe à chaleur', __FILE__)
-          );
-          $aqPACType = array(
+          ];
+          $aqPACType = [
             0 => __('Pompe à chaleur KlereoTherm', __FILE__),
             1 => __('Pompe à chaleur InoPac', __FILE__)
-          );
-          if ($pool['RegulModes']['HeaterMode'] == 4) {
-            $eqKlereo->checkAndUpdateCmd($HeaterMode, $aqPACType[$pool['RegulModes']['aqPACType']]);
+          ];
+          if ($details['params']['HeaterMode'] == 4) {
+            $eqKlereo->checkAndUpdateCmd($HeaterMode, $aqPACType[$details['params']['aqPACType']]);
           } else {
-            $eqKlereo->checkAndUpdateCmd($HeaterMode, $HeaterMode_arr[$pool['RegulModes']['HeaterMode']]);
+            $eqKlereo->checkAndUpdateCmd($HeaterMode, $HeaterMode_arr[$details['params']['HeaterMode']]);
           }
         }
         $access = $eqKlereo->getCmd('info', 'access');
@@ -379,7 +377,7 @@ class klereo extends eqLogic {
         }
         $ProductIdx = $eqKlereo->getCmd('info', 'ProductIdx');
         if ($ProductIdx) {
-          $ProductIdx_arr = array(
+          $ProductIdx_arr = [
             0 => 'Care / Premium',
             1 => 'Kompact M5',
             2 => 'Undefined',
@@ -388,26 +386,26 @@ class klereo extends eqLogic {
             5 => 'Kompact M9',
             6 => 'Kompact Plus M9',
             7 => 'Kompact Plus M2'
-          );
+          ];
           $eqKlereo->checkAndUpdateCmd($ProductIdx, $ProductIdx_arr[$details['ProductIdx']]);
         }
         $PumpType = $eqKlereo->getCmd('info', 'PumpType');
         if ($PumpType) {
-          $PumpType_arr = array(
+          $PumpType_arr = [
             0 => __('Pompe générique (pilotée par contacteur)', __FILE__),
             1 => __('Pompe KlereoFlô (pilotée par bus RS485)', __FILE__),
             2 => __('Pompe Pentair (pilotée par bus)', __FILE__),
             7 => __('Aucune pompe', __FILE__)
-          );
+          ];
           $eqKlereo->checkAndUpdateCmd($PumpType, $PumpType_arr[$pool['PumpType']]);
         }
         $isLowSalt = $eqKlereo->getCmd('info', 'isLowSalt');
         if ($isLowSalt) {
-          $isLowSalt_arr = array(
+          $isLowSalt_arr = [
             0 => 'Gamme 5g/h',
             1 => 'Gamme 2g/h'
-          );
-          $eqKlereo->checkAndUpdateCmd($isLowSalt, $isLowSalt_arr[$pool['isLowSalt']]);
+          ];
+          $eqKlereo->checkAndUpdateCmd($isLowSalt, $isLowSalt_arr[$details['isLowSalt']]);
         }
         $alertCount = $eqKlereo->getCmd('info', 'alertCount');
         if ($alertCount) {
@@ -417,7 +415,7 @@ class klereo extends eqLogic {
         }
         $alerts = $eqKlereo->getCmd('info', 'alerts');
         if ($alerts) {
-          $alerts_arr = array(
+          $alerts_arr = [
             0   => __('Pas d\'alerte', __FILE__),
             1   => __('Capteur HS', __FILE__),
             2   => __('Problème de configuration relais', __FILE__),
@@ -468,13 +466,13 @@ class klereo extends eqLogic {
             59  => __('Problème de communication avec le module de mesure de consommation', __FILE__),
             60  => __('Écran de la pompe à vitesse variable verrouillé', __FILE__),
             61  => __('Défaut pompe à chaleur', __FILE__)
-          );
+          ];
           $alerts_value = '';
           foreach ($pool['alerts'] as $pool_alert) {
             $alert_code = $pool_alert['code'];
             $alert_param = $pool_alert['param'];
             $param_text = '';
-            if (in_array($alert_code, array(1, 7, 8, 10, 36))) { // param = CapteurID
+            if (in_array($alert_code, [1, 7, 8, 10, 36])) { // param = CapteurID
               [$param_text, $unit] = explode(';', self::getSensorIndex()[$alert_param]);
             } elseif ($alert_code == 5) {
               $param_text = 'RFID';
@@ -484,7 +482,7 @@ class klereo extends eqLogic {
               } elseif ($alert_param == 1) {
                 $param_text = __('Désinfectant', __FILE__);
               }
-            } elseif (in_array($alert_code, array(13, 14))) { // param = DebitID
+            } elseif (in_array($alert_code, [13, 14])) { // param = DebitID
               $param_text = __('débit', __FILE__) . ' ' . strval($alert_param);
             } elseif ($alert_code == 35) { // param = OutID
               $param_text = __('sortie', __FILE__) . ' ' . strval($alert_param);
@@ -492,7 +490,7 @@ class klereo extends eqLogic {
               $param_text = __('BSVError', __FILE__) . ' ' . strval($alert_param);
             } elseif ($alert_code == 41) { // param = ComId
               $param_text = __('Communication', __FILE__) . ' ' . strval($alert_param);
-            } elseif (in_array($alert_code, array(50, 51, 52, 54, 61))) { // param = ErrCodeEX, ErrCodePX, ErrCodeFX, PumpErrCode
+            } elseif (in_array($alert_code, [50, 51, 52, 54, 61])) { // param = ErrCodeEX, ErrCodePX, ErrCodeFX, PumpErrCode
               $param_text = __('code d\'erreur', __FILE__) . ' ' . strval($alert_param);
             } elseif ($alert_code == 53) { // param = PumpID
               $param_text = __('pompe numéro', __FILE__) . ' ' . strval($alert_param);
@@ -509,7 +507,7 @@ class klereo extends eqLogic {
           }
           $eqKlereo->checkAndUpdateCmd($alerts, $alerts_value);
           
-          foreach (array('ConsigneEau', 'ConsignePH', 'ConsigneRedox', 'ConsigneChlore') as $consigne) {
+          foreach (['ConsigneEau', 'ConsignePH', 'ConsigneRedox', 'ConsigneChlore'] as $consigne) {
             $cmd = $eqKlereo->getCmd('info', $consigne);
             if ($cmd && array_key_exists($consigne, $details['params'])) {
               $cmd->adjustMinMax(floor($details['params'][$consigne]), ceil($details['params'][$consigne]));
@@ -522,7 +520,7 @@ class klereo extends eqLogic {
               continue;
             }
             
-            [$outN, $name, $plan] = $eqKlereo->getOutInfo($out['index']);
+            [$outN, $name, $plan64] = $eqKlereo->getOutInfo($out['index']);
             $cmd = $eqKlereo->getCmd('info', $outN);
             $eqKlereo->checkAndUpdateCmd($cmd, $out['status']);
             if ($out['index'] == 1) { // Filtration (1)
@@ -550,7 +548,7 @@ class klereo extends eqLogic {
               $cmdRegul = $eqKlereo->getCmd('info', $outN . '_regulation');
               $eqKlereo->checkAndUpdateCmd($cmdRegul, $out['mode']);
               
-            }  elseif (in_array($out['index'], array(0, 5, 6, 7, 9, 10, 11, 12, 13, 14))) { // Eclairage (0) ou AuxN (5, 6, 7, 9, 10, 11, 12, 13, 14)
+            }  elseif (in_array($out['index'], [0, 5, 6, 7, 9, 10, 11, 12, 13, 14])) { // Eclairage (0) ou AuxN (5, 6, 7, 9, 10, 11, 12, 13, 14)
               $cmdOff = $eqKlereo->getCmd('info', $outN . '_off');
               if ($cmdOff->execCmd() == '') { // out_nnn_off est gérée par cmd->execute(), ici on initialise juste la valeur de la commande
                 $eqKlereo->checkAndUpdateCmd($cmdOff, 0);
@@ -571,7 +569,7 @@ class klereo extends eqLogic {
   }
   
   static function getSensorIndex() {
-    return array(
+    return [
       0   =>  __('Température coffret Care/premium', __FILE__) . ';°C',
       1   =>  __('Température air', __FILE__) . ';°C',
       2   =>  __('Température eau', __FILE__) . ';°C',
@@ -604,11 +602,11 @@ class klereo extends eqLogic {
       29  =>  __('Température air8 / Redox Gen3-2', __FILE__) . ';°C',
       30  =>  __('Température air9 / Pression Gen3-2', __FILE__) . ';°C',
       31  =>  __('Température air10 / Chlore Gen3-2', __FILE__) . ';°C'
-    );
+    ];
   }
   
   static function getSensorTypes() {
-    return array(
+    return [
       0   =>  __('Température local technique', __FILE__) . ';°C',
       1   =>  __('Température air', __FILE__) . ';°C',
       2   =>  __('Niveau d\'eau', __FILE__) . ';%',
@@ -621,21 +619,22 @@ class klereo extends eqLogic {
       12  =>  __('Niveau bidon', __FILE__) . ';%',
       13  =>  __('Position volet / couverture', __FILE__) . ';%',
       14  =>  __('Chlore', __FILE__) . ';mg/L'
-    );
+    ];
   }
 
-  // Retourne un tableau de 96 boolean à raison de 1 par quart d'heure sur 24 heures dans l'ordre chronologique.
+  // Prend le planning de programmation codé en base64 comme paramètre
+  // Retourne la chaine hexadécimale et un tableau de 96 boolean à raison de 1 par quart d'heure sur 24 heures dans l'ordre chronologique.
   static function plan2arr($_plan64) {
     $p = unpack('h*', base64_decode($_plan64, false))[1];
-    $ret = [];
+    $plan = [];
     for ($i = 0; $i < strlen($p); $i++) {
       $b = base_convert(substr($p, $i, 1), 16, 2);
       $b = str_repeat('0', 4 - strlen($b)) . $b;
       for ($j = 3; $j >= 0; $j--) {
-        $ret[] = substr($b, $j, 1) == '1';
+        $plan[] = substr($b, $j, 1) == '1';
       }
     }
-    return $ret;
+    return [$p, $plan];
   }
   
   /*   * *********************Méthodes d'instance************************* */
@@ -691,7 +690,7 @@ class klereo extends eqLogic {
       if (isset($details['params']['Filtration_TotalTime'])) {
         $this->createCmdInfo('Filtration_TotalTime', __('Temps de filtration total', __FILE__), 'numeric', $order, 0, 5000, 'h');
       }
-      if (isset($pool['RegulModes']['pHMode']) && $pool['RegulModes']['pHMode'] > 0) {
+      if (isset($details['params']['pHMode']) && $details['params']['pHMode'] > 0) {
         if (isset($details['params']['PHMinus_TodayTime'])) {
           $this->createCmdInfo('PHMinus_Today', __('Consommation pH-Minus jour', __FILE__), 'numeric', $order, 0, 36, 'mL');
         }
@@ -705,7 +704,7 @@ class klereo extends eqLogic {
       if (isset($details['params']['ElectroChlore_TotalTime'])) {
         $this->createCmdInfo('Chlore_Total', __('Consommation chlore totale', __FILE__), 'numeric', $order, 0, 10, 'L');
       }
-      if (isset($pool['RegulModes']['HeaterMode']) && $pool['RegulModes']['HeaterMode'] > 0) {
+      if (isset($details['params']['HeaterMode']) && $details['params']['HeaterMode'] > 0) {
         if (isset($details['params']['Chauff_TodayTime'])) {
           $this->createCmdInfo('Chauff_TodayTime', __('Temps de chauffage jour', __FILE__), 'numeric', $order, 0, 24, 'h');
         }
@@ -713,18 +712,16 @@ class klereo extends eqLogic {
           $this->createCmdInfo('Chauff_TotalTime', __('Temps de chauffage total', __FILE__), 'numeric', $order, 0, 5000, 'h');
         }
       }
-    }
-    if (isset($pool['RegulModes'])) {
-      if (isset($pool['RegulModes']['PoolMode'])) {
+      if (isset($details['params']['PoolMode'])) {
         $this->createCmdInfo('PoolMode', __('Mode de régulation', __FILE__), 'string', $order);
       }
-      if (isset($pool['RegulModes']['TraitMode'])) {
+      if (isset($details['params']['TraitMode'])) {
         $this->createCmdInfo('TraitMode', __('Type de désinfectant', __FILE__), 'string', $order);
       }
-      if (isset($pool['RegulModes']['pHMode'])) {
+      if (isset($details['params']['pHMode'])) {
         $this->createCmdInfo('pHMode', __('Type de correcteur de pH', __FILE__), 'string', $order);
       }
-      if (isset($pool['RegulModes']['HeaterMode'])) {
+      if (isset($details['params']['HeaterMode'])) {
         $this->createCmdInfo('HeaterMode', __('Type de chauffage', __FILE__), 'string', $order);
       }
     }
@@ -735,7 +732,7 @@ class klereo extends eqLogic {
     if (isset($pool['PumpType'])) {
       $this->createCmdInfo('PumpType', __('Type de pompe de filtration', __FILE__), 'string', $order);
     }
-    if (isset($pool['isLowSalt'])) {
+    if (isset($details['isLowSalt'])) {
       $this->createCmdInfo('isLowSalt', __('Gamme d électrolyseur', __FILE__), 'string', $order);
     }
     $this->createCmdInfo('alertCount', __('Nombre d alertes', __FILE__), 'numeric', $order, 0, 5, '');
@@ -743,30 +740,30 @@ class klereo extends eqLogic {
     
     if (isset($details['params'])) {
       if ($details['access'] >= 10
-          && isset($pool['RegulModes']['HeaterMode'])
-          && $pool['RegulModes']['HeaterMode'] > 0
+          && isset($details['params']['HeaterMode'])
+          && !in_array($details['params']['HeaterMode'], [0, 3]) // 0: pas de PAC, 3: PAC on/off sans consigne
           && array_key_exists('ConsigneEau', $details['params'])
-          && !in_array($details['params']['ConsigneEau'], array(-1000, -2000))) {
+          && !in_array($details['params']['ConsigneEau'], [-2000, -1000])) { // -2000: Désactivé; -1000: Inconnu
         $this->createCmdInfo('ConsigneEau', __('Lecture consigne chauffage', __FILE__), 'numeric', $order, $details['params']['EauMin'], $details['params']['EauMax'], '°C');
         $this->createCmdAction('ConsigneEau', __('Consigne chauffage', __FILE__), 'slider', $order, $details['params']['EauMin'], $details['params']['EauMax'], '°C', 'ConsigneEau', null, 0.5);
       }
       if ($details['access'] >= 16) {
-        if (isset($pool['RegulModes']['pHMode'])
-            && $pool['RegulModes']['pHMode'] > 0
+        if (isset($details['params']['pHMode'])
+            && $details['params']['pHMode'] > 0
             && array_key_exists('ConsignePH', $details['params'])
-            && !in_array($details['params']['ConsignePH'], array(-1000, -2000))) {
+            && !in_array($details['params']['ConsignePH'], [-2000, -1000])) { // -2000: Désactivé; -1000: Inconnu
           $this->createCmdInfo('ConsignePH', __('Lecture consigne pH', __FILE__), 'numeric', $order, $details['params']['pHMin'], $details['params']['pHMax'], 'pH');
           $this->createCmdAction('ConsignePH', __('Ecriture consigne pH', __FILE__), 'slider', $order, $details['params']['pHMin'], $details['params']['pHMax'], 'pH', 'ConsignePH', null, 0.1);
         }
         if (array_key_exists('ConsigneRedox', $details['params'])
             && array_key_exists('ConsigneRedox', $details['params'])
-            && !in_array($details['params']['ConsigneRedox'], array(-1000, -2000))) {
+            && !in_array($details['params']['ConsigneRedox'], [-2000, -1000])) { // -2000: Désactivé; -1000: Inconnu
           $this->createCmdInfo('ConsigneRedox', __('Lecture consigne Redox', __FILE__), 'numeric', $order, $details['params']['OrpMin'], $details['params']['OrpMax'], 'mV');
           $this->createCmdAction('ConsigneRedox', __('Ecriture consigne Redox', __FILE__), 'slider', $order, $details['params']['OrpMin'], $details['params']['OrpMax'], 'mV', 'ConsigneRedox');
         }
         if (array_key_exists('ConsigneChlore', $details['params'])
             && array_key_exists('ConsigneChlore', $details['params'])
-            && !in_array($details['params']['ConsigneChlore'], array(-1000, -2000))) {
+            && !in_array($details['params']['ConsigneChlore'], [-2000, -1000])) { // -2000: Désactivé; -1000: Inconnu
           $this->createCmdInfo('ConsigneChlore', __('Lecture consigne chlore', __FILE__), 'numeric', $order, 0, 5, 'mg/L');
           $this->createCmdAction('ConsigneChlore', __('Ecriture consigne chlore', __FILE__), 'slider', $order, 0, 5, 'mg/L', 'ConsigneChlore', null, 0.1);
         }
@@ -779,8 +776,8 @@ class klereo extends eqLogic {
         continue;
       }
       
-      [$outN, $name, $plan] = $this->getOutInfo($out['index']);
-      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ': ' . sprintf("plan = '%s'", var_export($plan, true))); // DEBUG
+      [$outN, $name, $plan64] = $this->getOutInfo($out['index']);
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ': ' . sprintf("spy plan64 = '%s'", var_export($plan64, true))); // DEBUG
       $this->createCmdInfo($outN, $name . ' ' . __('état', __FILE__), 'binary', $order);
       if ($out['index'] == 1) { // Filtration (1)
         $this->createCmdInfo($outN . '_off', $name . ' ' . __('OFF état', __FILE__), 'binary', $order);
@@ -801,10 +798,12 @@ class klereo extends eqLogic {
         $this->createCmdInfo($outN . '_off', $name . ' ' . __('OFF état', __FILE__), 'binary', $order);
         $this->createCmdAction($outN . '_off', $name . ' ' . __('OFF CMD', __FILE__), 'other', $order, null, null, null, $outN . '_off');
         $this->createCmdInfo($outN . '_regulation', $name . ' ' . __('Régulation état', __FILE__), 'numeric', $order, 0, 3, '');
-        $this->createCmdAction($outN . '_regulation', $name . ' ' . __('Régulation CMD', __FILE__), 'select', $order, null, null, null, $outN . '_regulation',
-                                '0|' . __('Arrêt', __FILE__) . ';1|' . __('Automatique', __FILE__) . ';2|' . __('Refroidissement', __FILE__) . ';3|' . __('Chauffage', __FILE__));
+        $listValue = '0|' . __('Arrêt', __FILE__) . ';1|' .
+                    (in_array($details['params']['HeaterMode'], [2, 4]) ? __('Automatique', __FILE__) . ';2|' . __('Refroidissement', __FILE__) : '') .
+                    ';3|' . __('Chauffage', __FILE__);
+        $this->createCmdAction($outN . '_regulation', $name . ' ' . __('Régulation CMD', __FILE__), 'select', $order, null, null, null, $outN . '_regulation', $listValue);
         
-      } elseif (in_array($out['index'], array(0, 5, 6, 7, 9, 10, 11, 12, 13, 14))) { // Eclairage (0) ou AuxN (5, 6, 7, 9, 10, 11, 12, 13, 14)
+      } elseif (in_array($out['index'], [0, 5, 6, 7, 9, 10, 11, 12, 13, 14])) { // Eclairage (0) ou AuxN (5, 6, 7, 9, 10, 11, 12, 13, 14)
         $this->createCmdInfo($outN . '_off', $name . ' ' . __('OFF état', __FILE__), 'binary', $order);
         $this->createCmdAction($outN . '_off', $name . ' ' . __('OFF CMD', __FILE__), 'other', $order, null, null, null, $outN . '_off');
         $this->createCmdInfo($outN . '_on', $name . ' ' . __('ON état', __FILE__), 'binary', $order);
@@ -863,7 +862,7 @@ class klereo extends eqLogic {
         $command->setConfiguration('maxValue', $max);
         $command->setUnite($unite);
         if (!is_null($sliderStep))
-          $command->setDisplay('parameters', array('step' => $sliderStep));
+          $command->setDisplay('parameters', ['step' => $sliderStep]);
       }
       if (!is_null($linkedLogicalId)) {
         $linkedCmd = $this->getCmd('info', $linkedLogicalId);
@@ -904,19 +903,19 @@ class klereo extends eqLogic {
     $config_getPoolDetails_dt = config::byKey('getPoolDetails_dt::' . $eqPoolId, __CLASS__, '0000-01-01 00:00:00');
     $expire_dt = strtotime(self::$_ACTUALIZE_TIME_GETPOOLDETAILS . ' ' . $config_getPoolDetails_dt);
     if (strtotime(self::now()) >= $expire_dt || $_force || config::byKey('getPoolDetails::' . $eqPoolId, __CLASS__, '') === '') {
-      $post_data = array(
+      $post_data = [
         'poolID'  => intval($eqPoolId),
         'lang'    => substr(translate::getLanguage(), 0, 2)
-      );
-      $curl_setopt_array = array(
+      ];
+      $curl_setopt_array = [
         CURLOPT_URL         => self::$_API_ROOT . 'GetPoolDetails.php',
         CURLOPT_POST        => true,
-        CURLOPT_HTTPHEADER  => array(
+        CURLOPT_HTTPHEADER  => [
           'User-Agent: ' . self::$_USER_AGENT,
           'Authorization: Bearer ' . self::getJwtToken()
-        ),
+        ],
         CURLOPT_POSTFIELDS  => $post_data
-      );
+      ];
       [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
       if (isset($body['response']) && is_array($body['response'])) {
         $getPoolDetails = $body['response'][0];
@@ -934,24 +933,24 @@ class klereo extends eqLogic {
   }
   
   function getOutInfo($_index) {
-    $names = array(
-      0  => __('Eclairage', __FILE__),
-      1  => __('Filtration', __FILE__),
-      2  => __('Correcteur pH', __FILE__),
-      3  => __('Désinfectant', __FILE__),
-      4  => __('Chauffage', __FILE__),
-      5  => __('Auxiliaire 1', __FILE__),
-      6  => __('Auxiliaire 2', __FILE__),
-      7  => __('Auxiliaire 3', __FILE__),
-      8  => __('Floculant', __FILE__),
-      9  => __('Auxiliaire 4', __FILE__),
-      10 => __('Auxiliaire 5', __FILE__),
-      11 => __('Auxiliaire 6', __FILE__),
-      12 => __('Auxiliaire 7', __FILE__),
-      13 => __('Auxiliaire 8', __FILE__),
-      14 => __('Auxiliaire 9', __FILE__),
-      15 => __('Désinfectant hybride', __FILE__)
-    );
+    $names = [
+      0  => [__('Eclairage', __FILE__), 0],
+      1  => [__('Filtration', __FILE__), 1],
+      2  => [__('Correcteur pH', __FILE__), null],
+      3  => [__('Désinfectant', __FILE__), 3],
+      4  => [__('Chauffage', __FILE__), null],
+      5  => [__('Auxiliaire 1', __FILE__), 5],
+      6  => [__('Auxiliaire 2', __FILE__), 6],
+      7  => [__('Auxiliaire 3', __FILE__), 7],
+      8  => [__('Floculant', __FILE__), 4],
+      9  => [__('Auxiliaire 4', __FILE__), 8],
+      10 => [__('Auxiliaire 5', __FILE__), 9],
+      11 => [__('Auxiliaire 6', __FILE__), 10],
+      12 => [__('Auxiliaire 7', __FILE__), 11],
+      13 => [__('Auxiliaire 8', __FILE__), 12],
+      14 => [__('Auxiliaire 9', __FILE__), 13],
+      15 => [__('Désinfectant hybride', __FILE__), 2]
+    ];
     
     $details = $this->getPoolDetails();
     if (isset($details['IORename']) && count($details['IORename']) >= 1) {
@@ -961,15 +960,15 @@ class klereo extends eqLogic {
         }
       }
     }
-    $plan = '';
+    $plan64 = '';
     foreach ($details['plans'] as $outPlan) {
-      if ($outPlan['index'] == $_index) {
-        $plan = $outPlan['plan64'];
+      if ($outPlan['index'] === $names[$_index][1]) {
+        $plan64 = $outPlan['plan64'];
         break;
       }
     }
     
-    return array(sprintf('out_%03d', $_index), $names[$_index], $plan);
+    return [sprintf('out_%03d', $_index), $names[$_index][0], $plan64];
   }
   
   function getProbesInfos() {
@@ -983,7 +982,7 @@ class klereo extends eqLogic {
     $details = $this->getPoolDetails();
     $sensor_types = self::getSensorTypes();
     
-    $ioRename = array();
+    $ioRename = [];
     if (isset($details['IORename']) && count($details['IORename']) >= 1) {
       foreach ($details['IORename'] as $ioRen) {
         if ($ioRen['ioType'] == 2) { // probe
@@ -992,19 +991,19 @@ class klereo extends eqLogic {
       }
     }
     
-    $probes = array();
+    $probes = [];
     foreach ($details['probes'] as $probe) {
       $seuilMin = $probe['seuilMin'];
       $seuilMax = $probe['seuilMax'];
-      if (in_array($seuilMin, array(-2000, -1000))) { // -2000: Désactivé; -1000: Inconnu
-        if (in_array($seuilMax, array(-2000, -1000))) {
+      if (in_array($seuilMin, [-2000, -1000])) { // -2000: Désactivé; -1000: Inconnu
+        if (in_array($seuilMax, [-2000, -1000])) {
           $seuilMin = floor(min($probe['filteredValue'], $probe['directValue']));
           $seuilMax = ceil(max($probe['filteredValue'], $probe['directValue']));
         } else {
           $seuilMin = floor(min($probe['filteredValue'], $probe['directValue']));
         }
       } else {
-        if (in_array($seuilMax, array(-2000, -1000))) {
+        if (in_array($seuilMax, [-2000, -1000])) { // -2000: Désactivé; -1000: Inconnu
           $seuilMax = ceil(max($probe['filteredValue'], $probe['directValue']));
         }
       }
@@ -1014,32 +1013,32 @@ class klereo extends eqLogic {
         $description = $ioRename[$probe['index']];
       }
       
-      $probes[] = array(
+      $probes[] = [
         'logicalId'     => 'probe_' . $probe['index'],
         'minValue'      => floor(min($seuilMin, $seuilMax, $probe['filteredValue'], $probe['directValue'])),
         'maxValue'      => ceil(max($seuilMin, $seuilMax, $probe['filteredValue'], $probe['directValue'])),
         'filteredValue' => $probe['filteredValue'],
         'directValue'   => $probe['directValue'],
         'description'   => $description . ';' . $sensor_type[1]
-      );
+      ];
     }
     return $probes;
   }
   
-	function getNextOrder() {
-		$values = array(
-			'class'       => __CLASS__,
-			'eqLogic_id'  => $this->getId()
-		);
-		$sql = 'SELECT MAX(`order`) as maxorder
-    FROM `cmd`
-    WHERE `eqType`=:class AND `eqLogic_id`=:eqLogic_id';
-		$sqlResult = DB::Prepare($sql, $values, DB::FETCH_TYPE_ROW);
+  function getNextOrder() {
+    $values = [
+      'class'       => __CLASS__,
+      'eqLogic_id'  => $this->getId()
+    ];
+    $sql = 'SELECT MAX(`order`) as maxorder
+            FROM `cmd`
+            WHERE `eqType`=:class AND `eqLogic_id`=:eqLogic_id';
+    $sqlResult = DB::Prepare($sql, $values, DB::FETCH_TYPE_ROW);
     if ($sqlResult['maxorder'] == null) {
       return 0;
     }
     return intval($sqlResult['maxorder']) + 1;
-	}
+  }
   
   function setOut($_out_index, $_mode, $_state) {
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ': ' . sprintf("_out_index = '%s', _mode = '%s', _state = '%s'",
@@ -1052,39 +1051,39 @@ class klereo extends eqLogic {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Ce bassin n\'est pas rattaché à votre compte.', __FILE__));
     }
     $details = $this->getPoolDetails();
-    if (in_array($_out_index, array(2, 3, 8, 15)) && $details['access'] < 20) {
+    if (in_array($_out_index, [2, 3, 8, 15]) && $details['access'] < 20) {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Pour cette sortie, il faut au minimum un accès "professionnel / piscinier".', __FILE__));
     }
-    $valid_index = array();
+    $valid_index = [];
     foreach ($details['outs'] as $out) {
       $valid_index[] = $out['index'];
     }
     if (!in_array($_out_index, $valid_index)) {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Index de sortie inconnu.', __FILE__));
     }
-    if (($_out_index != 4 && !in_array($_mode, array(0, 1, 2, 3, 4, 6, 8, 9))) || ($_out_index == 4 && !in_array($_mode, array(0, 1, 2, 3)))) {
+    if (($_out_index != 4 && !in_array($_mode, [0, 1, 2, 3, 4, 6, 8, 9])) || ($_out_index == 4 && !in_array($_mode, [0, 1, 2, 3]))) {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Mode non pris en charge.', __FILE__));
     }
     if (!is_int($_state) || $_state < 0 || $_state > 7) {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Etat de la sortie non pris en charge.', __FILE__));
     }
     
-    $post_data = array(
+    $post_data = [
       'poolID'    => intval($eqPoolId),
       'outIdx'    => $_out_index,
       'newMode'   => $_mode,
       'newState'  => $_state,
       'comMode'   => 1
-    );
-    $curl_setopt_array = array(
+    ];
+    $curl_setopt_array = [
       CURLOPT_URL         => self::$_API_ROOT . 'SetOut.php',
       CURLOPT_POST        => true,
-      CURLOPT_HTTPHEADER  => array(
+      CURLOPT_HTTPHEADER  => [
         'User-Agent: ' . self::$_USER_AGENT,
         'Authorization: Bearer ' . self::getJwtToken()
-      ),
+      ],
       CURLOPT_POSTFIELDS  => $post_data
-    );
+    ];
     [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body = '%s'", var_export($body, true)));
     
@@ -1108,21 +1107,21 @@ class klereo extends eqLogic {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Ce bassin n\'est pas rattaché à votre compte.', __FILE__));
     }
     
-    $post_data = array(
+    $post_data = [
       'poolID'    => intval($eqPoolId),
       'paramID'   => $_param,
       'newValue'  => $_newValue,
       'comMode'   => 1
-    );
-    $curl_setopt_array = array(
+    ];
+    $curl_setopt_array = [
       CURLOPT_URL         => self::$_API_ROOT . 'SetParam.php',
       CURLOPT_POST        => true,
-      CURLOPT_HTTPHEADER  => array(
+      CURLOPT_HTTPHEADER  => [
         'User-Agent: ' . self::$_USER_AGENT,
         'Authorization: Bearer ' . self::getJwtToken()
-      ),
+      ],
       CURLOPT_POSTFIELDS  => $post_data
-    );
+    ];
     [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body = '%s'", var_export($body, true)));
     
@@ -1146,21 +1145,21 @@ class klereo extends eqLogic {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Ce bassin n\'est pas rattaché à votre compte.', __FILE__));
     }
     
-    $post_data = array(
+    $post_data = [
       'poolID'    => intval($eqPoolId),
       'outIdx'    => $_outIdx,
       'offDelay'  => $_offDelay,
       'comMode'   => 1
-    );
-    $curl_setopt_array = array(
+    ];
+    $curl_setopt_array = [
       CURLOPT_URL         => self::$_API_ROOT . 'SetAutoOff.php',
       CURLOPT_POST        => true,
-      CURLOPT_HTTPHEADER  => array(
+      CURLOPT_HTTPHEADER  => [
         'User-Agent: ' . self::$_USER_AGENT,
         'Authorization: Bearer ' . self::getJwtToken()
-      ),
+      ],
       CURLOPT_POSTFIELDS  => $post_data
-    );
+    ];
     [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body = '%s'", var_export($body, true)));
     
@@ -1177,18 +1176,18 @@ class klereo extends eqLogic {
   function waitCommand($_cmd_id) {
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("_cmd_id = '%s'", var_export($_cmd_id, true)));
     
-    $post_data = array(
+    $post_data = [
       'cmdID' => $_cmd_id
-    );
-    $curl_setopt_array = array(
+    ];
+    $curl_setopt_array = [
       CURLOPT_URL         => self::$_API_ROOT . 'WaitCommand.php',
       CURLOPT_POST        => true,
-      CURLOPT_HTTPHEADER  => array(
+      CURLOPT_HTTPHEADER  => [
         'User-Agent: ' . self::$_USER_AGENT,
         'Authorization: Bearer ' . self::getJwtToken()
-      ),
+      ],
       CURLOPT_POSTFIELDS  => $post_data
-    );
+    ];
     [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body = '%s'", var_export($body, true)));
     
@@ -1238,7 +1237,7 @@ class klereoCmd extends cmd {
   }
   */
   
-  public function execute($_option=array()) {
+  public function execute($_option=[]) {
     log::add('klereo', 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("_option = '%s'", var_export($_option, true)));
     
     if ($this->getType() != 'action') {
