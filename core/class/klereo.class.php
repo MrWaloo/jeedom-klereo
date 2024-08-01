@@ -32,7 +32,7 @@ class klereo extends eqLogic {
   * Permet de crypter/décrypter automatiquement des champs de configuration du plugin
   * Exemple : "param1" & "param2" seront cryptés mais pas "param3"
   */
-  public static $_encryptConfigKey = ['login', 'password', 'jwt::Authorization'];
+  public static $_encryptConfigKey = ['login', 'password'];
 
   public static $_version = '0.5 beta';
   
@@ -78,17 +78,8 @@ class klereo extends eqLogic {
    */
   
   public static function reinit() {
-    $configKeys = config::searchKey('getPoolDetails', __CLASS__);
-    foreach ($configKeys as $match) {
-      if ($match['plugin'] != __CLASS__) {
-        continue;
-      }
-      config::remove($match['key'], __CLASS__);
-    }
-    config::remove('getIndex', __CLASS__);
-    config::remove('getIndex_dt', __CLASS__);
-    config::remove('jwt::Authorization', __CLASS__);
-    config::remove('jwt::login_dt', __CLASS__);
+    // Suppression du cache du plugin
+    cache::delete('pluginCacheAttr' . __CLASS__);
     
     $klereoPlugin = plugin::byId(__CLASS__);
     $eqLogics = self::byType($klereoPlugin->getId());
@@ -156,9 +147,9 @@ class klereo extends eqLogic {
   }
   
   static function getJwtToken() {
-    $config_jwt_login_dt = config::byKey('jwt::login_dt', __CLASS__, '0000-01-01 00:00:00');
+    $config_jwt_login_dt = self::getFromCache('login_dt', '0000-01-01 00:00:00');
     $expire_dt = strtotime(self::$_ACTUALIZE_TIME_JWT . ' ' . $config_jwt_login_dt);
-    if (strtotime(self::now()) >= $expire_dt || config::byKey('jwt::Authorization', __CLASS__, '') === '') {
+    if (strtotime(self::now()) >= $expire_dt || self::getFromCache('jwt_token', '') === '') {
       $post_data = [
         'login'     => config::byKey('login', __CLASS__),
         'password'  => sha1(config::byKey('password', __CLASS__)),
@@ -173,19 +164,19 @@ class klereo extends eqLogic {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("header = *'%s'*", $header));
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body = *'%s'*", var_export($body, true)));
       $jwt = $body['jwt'];
-      config::save('jwt::login_dt', self::now(), __CLASS__);
-      config::save('jwt::Authorization', $jwt, __CLASS__);
+      self::saveToCache('login_dt', self::now());
+      self::saveToCache('jwt_token', utils::encrypt($jwt), 55 * 60); // lifetime = 55 minutes
       return $jwt;
     } else {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("No actualisation, next actualisation at *'%s'*", date('d.m.Y H:i:s', $expire_dt)));
     }
-    return config::byKey('jwt::Authorization', __CLASS__);
+    return utils::decrypt(self::getFromCache('jwt_token'));
   }
   
   static function getIndex() {
-    $config_getIndex_dt = config::byKey('getIndex_dt', __CLASS__, '0000-01-01 00:00:00');
+    $config_getIndex_dt = self::getFromCache('getIndex_dt', '0000-01-01 00:00:00');
     $expire_dt = strtotime(self::$_ACTUALIZE_TIME_GETINDEX . ' ' . $config_getIndex_dt);
-    if (strtotime(self::now()) >= $expire_dt || config::byKey('getIndex', __CLASS__, '') === '') {
+    if (strtotime(self::now()) >= $expire_dt || self::getFromCache('getIndex', '') === '') {
       $curl_setopt_array = [
         CURLOPT_URL         => self::$_API_ROOT . 'GetIndex.php',
         CURLOPT_POST        => false,
@@ -197,8 +188,8 @@ class klereo extends eqLogic {
       [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
       if (isset($body['response']) && is_array($body['response'])) {
         $getIndex = $body['response'];
-        config::save('getIndex_dt', self::now(), __CLASS__);
-        config::save('getIndex', $getIndex, __CLASS__);
+        self::saveToCache('getIndex_dt', self::now());
+        self::saveToCache('getIndex', $getIndex, 3 * 3600 + 55 * 60); // lifetime = 3heures et 55 minutes
         return $getIndex;
       } else {
         throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de la réception de la liste des bassins.', __FILE__));
@@ -206,8 +197,7 @@ class klereo extends eqLogic {
     } else {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("No actualisation, next actualisation at *'%s'*", date('d.m.Y H:i:s', $expire_dt)));
     }
-
-    return config::byKey('getIndex', __CLASS__);
+    return self::getFromCache('getIndex');
   }
   
   static function getPools() {
@@ -621,6 +611,16 @@ class klereo extends eqLogic {
       14  =>  __('Chlore', __FILE__) . ';mg/L'
     ];
   }
+  
+  static function getFromCache($_key = '', $_default = '') {
+    $klereoPlugin = plugin::byId(__CLASS__);
+    return $klereoPlugin->getCache($_key, $_default);
+  }
+
+  static function saveToCache($_key, $_value = null, $_lifetime = 0) {
+    $klereoPlugin = plugin::byId(__CLASS__);
+    $klereoPlugin->setCache($_key, $_value, $_lifetime);
+  }
 
   // Prend le planning de programmation codé en base64 comme paramètre
   // Retourne la chaine hexadécimale et un tableau de 96 boolean à raison de 1 par quart d'heure sur 24 heures dans l'ordre chronologique.
@@ -643,11 +643,7 @@ class klereo extends eqLogic {
   //public function preRemove() {}
 
   // Fonction exécutée automatiquement après la suppression de l'équipement
-  public function postRemove() {
-    $eqPoolId = $this->getConfiguration('eqPoolId', '');
-    config::remove('getPoolDetails_dt::' . $eqPoolId, __CLASS__);
-    config::remove('getPoolDetails::' . $eqPoolId, __CLASS__);
-  }
+  //public function postRemove() {}
   
   // Fonction exécutée automatiquement avant la sauvegarde de l'équipement (création ou mise à jour)
   // La levée d'une exception invalide la sauvegarde
@@ -777,7 +773,6 @@ class klereo extends eqLogic {
       }
       
       [$outN, $name, $plan64] = $this->getOutInfo($out['index']);
-      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ': ' . sprintf("spy plan64 = '%s'", var_export($plan64, true))); // DEBUG
       $this->createCmdInfo($outN, $name . ' ' . __('état', __FILE__), 'binary', $order);
       if ($out['index'] == 1) { // Filtration (1)
         $this->createCmdInfo($outN . '_off', $name . ' ' . __('OFF état', __FILE__), 'binary', $order);
@@ -798,8 +793,8 @@ class klereo extends eqLogic {
         $this->createCmdInfo($outN . '_off', $name . ' ' . __('OFF état', __FILE__), 'binary', $order);
         $this->createCmdAction($outN . '_off', $name . ' ' . __('OFF CMD', __FILE__), 'other', $order, null, null, null, $outN . '_off');
         $this->createCmdInfo($outN . '_regulation', $name . ' ' . __('Régulation état', __FILE__), 'numeric', $order, 0, 3, '');
-        $listValue = '0|' . __('Arrêt', __FILE__) . ';1|' .
-                    (in_array($details['params']['HeaterMode'], [2, 4]) ? __('Automatique', __FILE__) . ';2|' . __('Refroidissement', __FILE__) : '') .
+        $listValue = '0|' . __('Arrêt', __FILE__) .
+                    (in_array($details['params']['HeaterMode'], [2, 4]) ? ';1|' . __('Automatique', __FILE__) . ';2|' . __('Refroidissement', __FILE__) : '') .
                     ';3|' . __('Chauffage', __FILE__);
         $this->createCmdAction($outN . '_regulation', $name . ' ' . __('Régulation CMD', __FILE__), 'select', $order, null, null, null, $outN . '_regulation', $listValue);
         
@@ -900,9 +895,10 @@ class klereo extends eqLogic {
     if ($eqPoolId == '') {
       return;
     }
-    $config_getPoolDetails_dt = config::byKey('getPoolDetails_dt::' . $eqPoolId, __CLASS__, '0000-01-01 00:00:00');
+    $config_getPoolDetails_dt = $this->getCache('getPoolDetails_dt', '0000-01-01 00:00:00');
     $expire_dt = strtotime(self::$_ACTUALIZE_TIME_GETPOOLDETAILS . ' ' . $config_getPoolDetails_dt);
-    if (strtotime(self::now()) >= $expire_dt || $_force || config::byKey('getPoolDetails::' . $eqPoolId, __CLASS__, '') === '') {
+    log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("------------------------- cache getPoolDetails *'%s'*", var_export($this->getCache('getPoolDetails'), true)));
+    if (strtotime(self::now()) >= $expire_dt || $_force || $this->getCache('getPoolDetails', '') === '') {
       $post_data = [
         'poolID'  => intval($eqPoolId),
         'lang'    => substr(translate::getLanguage(), 0, 2)
@@ -919,8 +915,8 @@ class klereo extends eqLogic {
       [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
       if (isset($body['response']) && is_array($body['response'])) {
         $getPoolDetails = $body['response'][0];
-        config::save('getPoolDetails_dt::' . $eqPoolId, self::now(), __CLASS__);
-        config::save('getPoolDetails::' . $eqPoolId, $getPoolDetails, __CLASS__);
+        $this->setCache('getPoolDetails_dt', self::now());
+        $this->setCache('getPoolDetails', $getPoolDetails, 9 * 60 + 50); // lifetime = 9 minutes et 50 secondes
         return $getPoolDetails;
       } else {
         throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de la réception des détails du bassin.', __FILE__));
@@ -928,8 +924,7 @@ class klereo extends eqLogic {
     } else {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("No actualisation, next actualisation at *'%s'*", date('d.m.Y H:i:s', $expire_dt)));
     }
-    
-    return config::byKey('getPoolDetails::' . $eqPoolId, __CLASS__);
+    return $this->getCache('getPoolDetails');
   }
   
   function getOutInfo($_index) {
