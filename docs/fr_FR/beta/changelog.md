@@ -20,6 +20,7 @@
 - Syntaxe php : accolades utilisées systématiquement (`if` et `foreach`)
 - Le token JWT est pris dans le corps de la réponse et plus dans l'entête
 - Meilleure gestion du CapteurID dans les défauts concernant un capteur
+- Utilisation du cache au lieu de l'utilisation de la table de config
 
 ### Fonctionalités
 - La commande 'AUTO' de la filtration est renommée en 'Plage'

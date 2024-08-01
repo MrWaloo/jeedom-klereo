@@ -1266,16 +1266,6 @@ class klereoCmd extends cmd {
       }
       
       $details = $eqKlereo->getPoolDetails();
-      $pool_id = $details['idSystem'];
-      
-      $getIndex = klereo::getIndex();
-      $pool = null;
-      foreach ($getIndex as $pool_info) {
-        if ($pool_info['idSystem'] == $pool_id) {
-          $pool = $pool_info;
-          break;
-        }
-      }
       
       if ($outIndex == 1) { // *-*-*-*-*-*-*-*-*-*-*-* Filtration
         $isAnalogicPump = $details['PumpMaxSpeed'] > 1;
