@@ -5,12 +5,13 @@
 > que seule la documentation a été mise à jour.
 
 ## TODO
-- Rédiger la documentation (en cours)
-- Revoir les messages de log
+- Revoir la gestion du cache dès que Jeedom V4.4.10 sortira (gestion du lifetime) et passer la version mini de Jeedom en 4.4.10
+- Rédiger la documentation (rédaction en cours et bien avancée)
+- Revoir les messages de log pour le passage en stable
 - Créer un widget
 - Permettre de modifier les plages horaires du mode 'Plage' pour les sorties qui peuvent être pilotées dans ce mode
 
-## xx/07/2024 V0.5 beta
+## xx/08/2024 V0.5 beta
 
 > :warning: ***Important***  
 > Il faut supprimer et recréer les équipements une fois cette mise à jour installée !
@@ -20,11 +21,11 @@
 - Syntaxe php : accolades utilisées systématiquement (`if` et `foreach`)
 - Le token JWT est pris dans le corps de la réponse et plus dans l'entête
 - Meilleure gestion du CapteurID dans les défauts concernant un capteur
-- Utilisation du cache au lieu de l'utilisation de la table de config
+- Utilisation du cache au lieu de l'utilisation de la table de config.
 
 ### Fonctionalités
 - La commande 'AUTO' de la filtration est renommée en 'Plage'
-- Log plus clairs
+- Log plus clairs (mais ça reste des logs d'une version bêta)
 - Mise à jour API:
   - Passage à la version 392-W
   - Intégration des pompes à chaleur InoPac en plus des pompes à chaleur KlereoTherm
