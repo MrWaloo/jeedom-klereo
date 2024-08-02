@@ -18,8 +18,8 @@
 require_once __DIR__  . '/../../../../core/php/core.inc.php';
 
 if (!jeedom::apiAccess(init('apikey'), 'klereo')) {
-    echo __('Vous n\'êtes pas autorisé à effectuer cette action', __FILE__);
-    die();
+  echo __('Vous n\'êtes pas autorisé à effectuer cette action', __FILE__);
+  die();
 }
 
 ?>

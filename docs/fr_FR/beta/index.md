@@ -32,31 +32,36 @@ Là, vous devez remplir les informations de connexion :
 Attention à bien cliquer sur le bouton ![Sauvegarder](../../images/Sauvegarder.png) sans quoi votre saisie ne sera pas
 sauvegardée.  
 Le fait de sauvegarder les identifiants réinitialise le plugin complet. Tous les équipements et toutes les commandes du
-plugin sont effacées sans qu'une validation soit demandée, alors soyez prudent.
+plugin sont effacées sans qu'une validation soit demandée, alors soyez prudent. Tout de suite après l'installation du
+plugin, cela n'a pas d'incidence puisqu'aucun équipement n'est présent.
+
+Il faut ensuite créer un équipement pour votre bassin. La sauvegarde de l'équipement déclanche la création automatique
+des commandes qui permettent de connaître et de modifier l'état de fonctionnement du bassin.
 
 # Le principe
 
 Un équipement de plugin correspond à un bassin. En fonction des mesures gérées par votre coffret Klereo, du type
 des équipements installés et de vos droits d'accès, les commandes info et action nécessaires et possibles sont
-automatiquement créées au moment de la sauvegarde de l'équipement.
+automatiquement créées au moment de la sauvegarde de l'équipement. Il faut donc choisir quel à bassin est associé
+l'équipement, activer l'équipement et le sauvegarder.
 
 Les données sont actualisées toutes les 10 minutes, une actualisation manuelle peut être demandée. Les données sont
 également actualisées immédiatement après l'exécution d'une commande action afin de raffraichir l'état du bassin dans
 Jeedom.
 
 Le nom de toutes les commandes peut être personnalisé. Mais il n'est pas possible d'ajouter ou de supprimer des
-commandes manuellement.
+commandes manuellement. L'ordre des commandes peut également être modifié sans que cela ne change le fonctionnement du
+plugin. Si des commandes sont supprimées de la base de données, elles seront recréées lors de la sauvegarde de
+l'équipement.
 
-La plage des commandes info numériques s'adapte automatiquement à la valeur mesurée afin de ne pas générer d'erreur et
-de permettre à Jeedom d'afficher toutes les mesures. La plage peut être personnalisée. Toutefois si elle n'est pas
-adaptée à une mesure faite, le plugin la modifiera.
-
-Si des commandes sont supprimées de la base de données, elles seront recréées lors de la sauvegarde de l'équipement.
+La plage (valeurs min. et max.) des commandes info numériques s'adapte automatiquement à la valeur mesurée afin de ne
+pas générer d'erreur et de permettre à Jeedom d'afficher toutes les mesures. La plage peut être personnalisée.
+Toutefois si elle n'est pas adaptée à une mesure faite, le plugin la modifiera.
 
 # Les commandes info
 
-Pour chaque mesure, une commande 'instantanée' et 'en filtration' sont créées. Les commandes 'en filtration' ne sont
-actualisées par l'API que lorsque la filtration est active. Le plugin ne fait que afficher les valeurs fournies par
+Pour chaque mesure, une commande 'instantanée' et 'en filtration' est créée. Les commandes 'en filtration' ne sont
+actualisées par l'API que lorsque la filtration est active. Le plugin ne fait qu'afficher les valeurs fournies par
 l'API, aucun traitement ou calcul n'est fait.
 
 Sont aussi communiquées, le cas échéant :
@@ -85,13 +90,14 @@ messages d'alerte sont séparés par des '\|\|'.
 # Les commandes action
 
 Chaque commande action est liée à une commande info afin que la valeur initiale corresponde à la valeur effective.
+Cette paire de commandes est nommée 'paire de commandes info+action' dans cette documentation.
 
 ## Les consignes
 
 Les bassins Klereo ont quatres consignes possibles :
 - la consigne de chauffage modifiable par tous les utilisateurs si un système de chauffage est installé,
-- les consignes de pH, de Redox et de chlore ne sont modifiables que par le pisciniste ou le support Klereo si le
-bassin est équipé d'un système de régulation pour ces valeurs.
+- les consignes de pH, de Redox et de chlore ne sont modifiables que par les utilisateurs ayant un accès "utilisateur
+  avancé", le pisciniste ou le support Klereo si le bassin est équipé d'un système de régulation pour ces valeurs.
 
 ## Les sorties
 
@@ -102,21 +108,19 @@ pour lesquelles seul l'état de la sortie est disponible :
 - floculant,
 - désinfectant hybride.
 
-Pour la filtration, , les paires de commandes info+action suivantes sont créées :
-- 'OFF': verrou qui lorsqu'il vaut '1' empêche le plugin de piloter la sortie,
+Pour la filtration, les paires de commandes info+action suivantes sont créées :
+- 'OFF' : verrou qui lorsqu'il vaut '1' empêche le plugin de piloter la sortie,
 - 'ON' : commande de marche manuelle pour une pompe on/off,
 - 'Consigne' : consigne de vitesse manuelle pour une pompe à plusieurs vitesses,
-- 'AUTO' : si une commande de fonctionnement manuel n'est pas actif, gestion de la filtration automatique par le
-coffret Klereo. Les temps de filtration sont calculés en fonction de la température de l’eau, du volume, du débit de la
-pompe et du mode d'utilisation du bassin,
+- 'Plage' : pour piloter la filtration selon les plages horaires définies,
 - 'Régulation' : les plages et durées de filtration seront calculées dynamiquement en fonction des paramètres et des
-capteurs du bassin.
+  capteurs du bassin.
 
 Pour les sorties éclairage et auxiliaires, les paires de commandes info+action suivantes sont créées :
 - 'OFF': verrou qui lorsqu'il vaut '1' empêche le plugin de piloter la sortie,
 - 'ON' : commande de marche manuelle,
 - 'Temps de minuterie' : durée (en minutes) durant laquelle la sortie est activée lorsque la commande 'Minuterie' est
-envoyée,
+  envoyée,
 - 'Minuterie' : pour piloter la sortie durant le temps configuré si la commande 'ON' vaut '0',
 - 'Plage' : pour piloter la sortie selon les plages horaires définies si les commandes 'ON' et 'Minuterie' valent '0'.
 
@@ -125,12 +129,13 @@ Pour le chauffage, les paires de commandes info+action suivantes sont créées :
 - 'Régulation' : commande qui peut prendre la valeur :
   - 0 : 'Arrêt' : le chauffage est éteint,
   - 1 : 'Automatique' : l'API contrôle le mode refroidissement ou chauffage en fonction de la consigne et de la
-  température du bassin,
+    température du bassin,
   - 2 : 'Refroidissement' : l'appareil gérant la température ne fonctionne que en refroidissement,
   - 3 : 'Chauffage' : l'appareil gérant la température ne fonctionne que en chauffage.
 
 > :memo: ***Remarque***  
-> Les modes 'Automatique' et 'Refroidissement' n'auront d’effet que sur les types de chauffage avec pompe à chaleur.
+> Les modes 'Automatique' et 'Refroidissement' ne sont permis par le plugin que sur les types de chauffage avec pompe
+> à chaleur.
 
 ### Exemple pour la filtration
 
@@ -142,9 +147,9 @@ En résumé, pour la filtration, les commandes suivantes sont créées :
 - 'Filtration ON état' : représente l'état de la commande manuelle. La commande manuelle est modifiable avec la
   commande action 'Filtration ON CMD',
 - 'Filtration ON CMD' : commande action permettant de modifier le pilotage manuel de la pompe,
-- 'Filtration AUTO état' : représente l'état du mode de pilotage selon les plages horaires. Le pilotage 'AUTO' est
-  modifiable avec la commande action 'Filtration AUTO CMD',
-- 'Filtration AUTO CMD' : commande action permettant de modifier le pilotage de la pompe selon les plages horaires
+- 'Filtration Plage état' : représente l'état du mode de pilotage selon les plages horaires. Le pilotage 'Plage' est
+  modifiable avec la commande action 'Filtration Plage CMD',
+- 'Filtration Plage CMD' : commande action permettant de modifier le pilotage de la pompe selon les plages horaires
   définies sur le site Klereo,
 - 'Filtration Régulation état' : représente l'état du mode de pilotage régulé. Le pilotage régulé est modifiable avec
   la commande action 'Filtration Régulation CMD',
@@ -152,17 +157,17 @@ En résumé, pour la filtration, les commandes suivantes sont créées :
   interne de l'automate.
 
 Cette liste défini également l'ordre de priorité de traitement des actions du plugin :
-- si la commande **OFF** est à 1 alors la pompe est arrêtée et les autres commandes sont ignorées,
+- si la commande **OFF** est à 1 alors la pompe est arrêtée et les autres commandes de la filtration sont ignorées,
 - si la commande **OFF** est à 0 et que la commande **ON** est à 1 alors la pompe est démarrée en mode manuel et les
-  autres commandes sont ignorées,
-- si les commandes **OFF** et **ON** sont à 0 et que la commande **AUTO** est à 1 alors la pompe est pilotée par
+  autres commandes de la filtration sont ignorées,
+- si les commandes **OFF** et **ON** sont à 0 et que la commande **Plage** est à 1 alors la pompe est pilotée par
   l'automate selon les plages horaires définies,
-- si les commandes **OFF**, **ON** et **AUTO** sont à 0 et que la commande **Régulation** est à 1 alors la pompe est
+- si les commandes **OFF**, **ON** et **Plage** sont à 0 et que la commande **Régulation** est à 1 alors la pompe est
   pilotée par l'automate selon les règles de régulation internes,
 - si toutes les commandes sont à 0 alors la pompe est arrêtée.
 
 > :memo: ***Remarque***  
-> Cette ordre est codé dans le plugin et ne dépend pas de l'ordre dans lequel les commandes apparaissent dans
+> Cet ordre est codé dans le plugin et ne dépend pas de l'ordre dans lequel les commandes apparaissent dans
 > l'équipement.
 
 ***
@@ -170,5 +175,3 @@ Cette liste défini également l'ordre de priorité de traitement des actions du
 > :heart: ***Remerciements***  
 > Je tiens à remercier Klereo de m'avoir permis de développer ce plugin et surtout Laurent du service web qui m'a donné
 > les informations de l'API en avant-première alors que l'API n'est pas officiellement publique.
-
-

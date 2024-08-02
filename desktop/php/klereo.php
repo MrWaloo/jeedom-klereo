@@ -72,7 +72,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
       <span class="input-group-btn">
         <!-- Les balises <a></a> sont volontairement fermées à la ligne suivante pour éviter les espaces entre les boutons. Ne pas modifier -->
         <a class="btn btn-primary btn-sm bt_showExpressionTest roundedLeft"><i class="fas fa-check"></i> {{Expression}}
-        </a><a <a class="btn btn-default btn-sm eqLogicAction" data-action="configure"><i class="fas fa-cogs"></i> {{Configuration avancée}}
+        </a><a class="btn btn-default btn-sm eqLogicAction" data-action="configure"><i class="fas fa-cogs"></i> {{Configuration avancée}}
         </a><a class="btn btn-default btn-sm eqLogicAction" data-action="copy"><i class="fas fa-copy"></i> {{Dupliquer}}
         </a><a class="btn btn-sm btn-success eqLogicAction" data-action="save"><i class="fas fa-check-circle"></i> {{Sauvegarder}}
         </a><a class="btn btn-danger btn-sm eqLogicAction roundedRight" data-action="remove"><i class="fas fa-minus-circle"></i> {{Supprimer}}
@@ -106,8 +106,9 @@ $eqLogics = eqLogic::byType($plugin->getId());
                   <select id="sel_object" class="eqLogicAttr form-control" data-l1key="object_id">
                     <option value="">{{Aucun}}</option>
                     <?php
-                    foreach ((jeeObject::buildTree(null, false)) as $object)
+                    foreach ((jeeObject::buildTree(null, false)) as $object) {
                       echo '<option value="' . $object->getId() . '">' . str_repeat('&nbsp;&nbsp;', $object->getConfiguration('parentNumber')) . $object->getName() . '</option>';
+                    }
                     ?>
                   </select>
                 </div>
@@ -140,8 +141,9 @@ $eqLogics = eqLogic::byType($plugin->getId());
                   <select class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="eqPoolId">
                     <option disabled selected value>-- {{Choisir une piscine}} --</option>
                     <?php
-                    foreach (klereo::getPools() as $pool_id => $pool_name)
+                    foreach (klereo::getPools() as $pool_id => $pool_name) {
                       echo '<option value="' . $pool_id . '">' . $pool_name . '</option>';
+                    }
                     ?>
                   </select>
                 </div>
