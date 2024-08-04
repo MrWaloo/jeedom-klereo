@@ -25,7 +25,7 @@ $("#table_cmd").sortable({
 });
 
 $('.eqLogicAction[data-action=bt_docSpecific]').on('click', function () {
-  window.open('https://bebel27a.github.io/jeedom-mymobdus.github.io/fr_FR/');
+  window.open('https://mrwaloo.github.io/jeedom-klereo/fr_FR/beta/index');
 });
 $('.bt_showExpressionTest').off('click').on('click', function () {
   $('#md_modal').dialog({title: "{{Testeur d'expression}}"});
