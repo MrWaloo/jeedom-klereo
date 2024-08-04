@@ -11,7 +11,7 @@
 - Créer un widget
 - Permettre de modifier les plages horaires du mode 'Plage' pour les sorties qui peuvent être pilotées dans ce mode
 
-## xx/08/2024 V0.5 beta
+## 02/08/2024 V0.5 beta
 
 > :warning: ***Important***  
 > Il faut supprimer et recréer les équipements une fois cette mise à jour installée !
