@@ -6,10 +6,16 @@
 
 ## TODO
 - Revoir la gestion du cache dès que Jeedom V4.4.10 sortira (gestion du lifetime) et passer la version mini de Jeedom en 4.4.10
-- Rédiger la documentation (rédaction en cours et bien avancée)
 - Revoir les messages de log pour le passage en stable
 - Créer un widget
 - Permettre de modifier les plages horaires du mode 'Plage' pour les sorties qui peuvent être pilotées dans ce mode
+
+## 12/08/2024 V0.6 beta
+
+Documentation OK
+
+### Corrections
+- Correction de 2 erreurs php
 
 ## 02/08/2024 V0.5 beta
 

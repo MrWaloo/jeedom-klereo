@@ -7,6 +7,11 @@
 ## TODO
 - La liste TODO se trouve dans la version bêta
 
+## 12/08/2024 V0.6
+
+Merge depuis V0.6 bêta
+
+
 ## 03/08/2024 V0.5
 
 > :warning: ***Important***  

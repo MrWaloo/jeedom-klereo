@@ -34,7 +34,7 @@ class klereo extends eqLogic {
   */
   public static $_encryptConfigKey = ['login', 'password'];
 
-  public static $_version = '0.5 stable';
+  public static $_version = '0.6 stable';
   
   static $_WEB_VERSION = '392-W';
   static $_API_ROOT = 'https://connect.klereo.fr/php/';
@@ -398,7 +398,7 @@ class klereo extends eqLogic {
         }
         $alertCount = $eqKlereo->getCmd('info', 'alertCount');
         if ($alertCount) {
-          $alert_count = count($pool['alerts']);
+          $alert_count = in_array('alerts', array_keys($pool)) ? count($pool['alerts']) : 0;
           $alertCount->adjustMinMax(0, $alert_count);
           $eqKlereo->checkAndUpdateCmd($alertCount, $alert_count);
         }
@@ -457,41 +457,43 @@ class klereo extends eqLogic {
             61  => __('Défaut pompe à chaleur', __FILE__)
           ];
           $alerts_value = '';
-          foreach ($pool['alerts'] as $pool_alert) {
-            $alert_code = $pool_alert['code'];
-            $alert_param = $pool_alert['param'];
-            $param_text = '';
-            if (in_array($alert_code, [1, 7, 8, 10, 36])) { // param = CapteurID
-              [$param_text, $unit] = explode(';', self::getSensorIndex()[$alert_param]);
-            } elseif ($alert_code === 5) {
-              $param_text = 'RFID';
-            } elseif ($alert_code === 6) {
-              if ($alert_param === 0) {
-                $param_text = 'pH';
-              } elseif ($alert_param === 1) {
-                $param_text = __('Désinfectant', __FILE__);
+          if (in_array('alerts', array_keys($pool))) {
+            foreach ($pool['alerts'] as $pool_alert) {
+              $alert_code = $pool_alert['code'];
+              $alert_param = $pool_alert['param'];
+              $param_text = '';
+              if (in_array($alert_code, [1, 7, 8, 10, 36])) { // param = CapteurID
+                [$param_text, $unit] = explode(';', self::getSensorIndex()[$alert_param]);
+              } elseif ($alert_code === 5) {
+                $param_text = 'RFID';
+              } elseif ($alert_code === 6) {
+                if ($alert_param === 0) {
+                  $param_text = 'pH';
+                } elseif ($alert_param === 1) {
+                  $param_text = __('Désinfectant', __FILE__);
+                }
+              } elseif (in_array($alert_code, [13, 14])) { // param = DebitID
+                $param_text = __('débit', __FILE__) . ' ' . strval($alert_param);
+              } elseif ($alert_code === 35) { // param = OutID
+                $param_text = __('sortie', __FILE__) . ' ' . strval($alert_param);
+              } elseif ($alert_code === 40) { // param = BSVError
+                $param_text = __('BSVError', __FILE__) . ' ' . strval($alert_param);
+              } elseif ($alert_code === 41) { // param = ComId
+                $param_text = __('Communication', __FILE__) . ' ' . strval($alert_param);
+              } elseif (in_array($alert_code, [50, 51, 52, 54, 61])) { // param = ErrCodeEX, ErrCodePX, ErrCodeFX, PumpErrCode
+                $param_text = __('code d\'erreur', __FILE__) . ' ' . strval($alert_param);
+              } elseif ($alert_code === 53) { // param = PumpID
+                $param_text = __('pompe numéro', __FILE__) . ' ' . strval($alert_param);
               }
-            } elseif (in_array($alert_code, [13, 14])) { // param = DebitID
-              $param_text = __('débit', __FILE__) . ' ' . strval($alert_param);
-            } elseif ($alert_code === 35) { // param = OutID
-              $param_text = __('sortie', __FILE__) . ' ' . strval($alert_param);
-            } elseif ($alert_code === 40) { // param = BSVError
-              $param_text = __('BSVError', __FILE__) . ' ' . strval($alert_param);
-            } elseif ($alert_code === 41) { // param = ComId
-              $param_text = __('Communication', __FILE__) . ' ' . strval($alert_param);
-            } elseif (in_array($alert_code, [50, 51, 52, 54, 61])) { // param = ErrCodeEX, ErrCodePX, ErrCodeFX, PumpErrCode
-              $param_text = __('code d\'erreur', __FILE__) . ' ' . strval($alert_param);
-            } elseif ($alert_code === 53) { // param = PumpID
-              $param_text = __('pompe numéro', __FILE__) . ' ' . strval($alert_param);
-            }
-            if ($alerts_value != '') {
-              $alerts_value += ' || ';
-            }
-            
-            if (in_array($alert_code, array_keys($alerts_arr))) {
-              $alerts_value .= $alerts_arr[$alert_code] . (($param_text != '') ? ' - ' . $param_text : '');
-            } else {
-              $alerts_value .= __('Code alerte inconnu par le plugin&nbsp;:', __FILE__) . ' ' . strval($alert_code);
+              if ($alerts_value != '') {
+                $alerts_value += ' || ';
+              }
+              
+              if (in_array($alert_code, array_keys($alerts_arr))) {
+                $alerts_value .= $alerts_arr[$alert_code] . (($param_text != '') ? ' - ' . $param_text : '');
+              } else {
+                $alerts_value .= __('Code alerte inconnu par le plugin&nbsp;:', __FILE__) . ' ' . strval($alert_code);
+              }
             }
           }
           $eqKlereo->checkAndUpdateCmd($alerts, $alerts_value);
