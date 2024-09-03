@@ -65,14 +65,19 @@ actualisées par l'API que lorsque la filtration est active. Le plugin ne fait q
 l'API, aucun traitement ou calcul n'est fait.
 
 Sont aussi communiquées, le cas échéant :
-- le temps de filtration du jour,
-- le temps de filtration total,
+- la durée de filtration du jour,
+- la durée de filtration total,
 - la consommation de pH-minus du jour,
 - la consommation de pH-minus totale,
+- la production journalière de chlore par électrolyse,
+- la consommation de chlore liquide du jour,
+- la consommation de chlore liquide totale,
+- la durée d'injection de chlore liquide du jour,
+- la durée d'injection de chlore liquide totale,
 - la consommation de chlore du jour,
 - la consommation de chlore totale,
-- le temps de chauffage du jour,
-- le temps de chauffage total.
+- la durée de chauffage du jour,
+- la durée de chauffage total.
 
 Les informations techniques sur le bassin suivantes sont également communiquées :
 - le mode de régulation,
