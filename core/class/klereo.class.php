@@ -330,11 +330,11 @@ class klereo extends eqLogic {
         $Chlore_Today = $eqKlereo->getCmd('info', 'Chlore_Today');
         if ($Chlore_Today) {
           $Chlore_Today->adjustMinMax(0, 24);
-          $eqKlereo->checkAndUpdateCmd($Chlore_Today, $details['params']['ElectroChlore_TodayTime']);
+          $eqKlereo->checkAndUpdateCmd($Chlore_Today, $details['params']['ElectroChlore_TodayTime'] / 3600);
         }
         $Chlore_Total = $eqKlereo->getCmd('info', 'Chlore_Total');
         if ($Chlore_Total) {
-          $value = $details['params']['ElectroChlore_TotalTime'];
+          $value = $details['params']['ElectroChlore_TotalTime'] / 3600;
           $Chlore_Total->adjustMinMax(floor($value), ceil($value));
           $eqKlereo->checkAndUpdateCmd($Chlore_Total, $value);
         }
