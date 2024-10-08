@@ -34,7 +34,7 @@ class klereo extends eqLogic {
   */
   public static $_encryptConfigKey = ['login', 'password'];
 
-  public static $_version = '0.6 stable';
+  public static $_version = '1.0 stable';
   
   static $_WEB_VERSION = '392-W';
   static $_API_ROOT = 'https://connect.klereo.fr/php/';
@@ -44,6 +44,33 @@ class klereo extends eqLogic {
   static $_ACTUALIZE_TIME_JWT = '+55 minutes';
   static $_ACTUALIZE_TIME_GETINDEX = '+3 hours 55 minutes'; // DEBUG: '+24 hours' /// '+1 minute'
   static $_ACTUALIZE_TIME_GETPOOLDETAILS = '+9 minutes 50 seconds';
+
+  static $_MAINTENANCES = [
+    0 => [
+      'from'  => 145,
+      'to'    => 445
+    ],
+    2 => [
+      'from'  => 130,
+      'to'    => 135
+    ],
+    3 => [
+      'from'  => 130,
+      'to'    => 135
+    ],
+    4 => [
+      'from'  => 130,
+      'to'    => 135
+    ],
+    5 => [
+      'from'  => 130,
+      'to'    => 135
+    ],
+    6 => [
+      'from'  => 130,
+      'to'    => 135
+    ]
+  ];
   
   /*   * ***********************Methode static*************************** */
   
@@ -99,12 +126,28 @@ class klereo extends eqLogic {
     return $ret;
   }
   
+  static function maintenance_ongoing() {
+    $week_day = intval(date('w'));
+    if (isset(self::$_MAINTENANCES[$week_day])) {
+      $time_slot = self::$_MAINTENANCES[$week_day];
+      $compact_hour = intval(date('Hi'));
+      if ($time_slot['from'] <= $compact_hour && $compact_hour <= $time_slot['to']) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
   static function curl_request($_curl_setopt_array = null, $_function_name = '') {
     if (is_null($_curl_setopt_array)) {
-      throw new Exception(__CLASS__ . '::curl_request&nbsp;:</br>' . __('Paramètres insuffisants.', __FILE__));
+      throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Paramètres insuffisants.', __FILE__));
     }
     if (config::byKey('login', __CLASS__, '') === '' || config::byKey('password', __CLASS__, '') === '') {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Les informations de connexions doivent être renseignées dans la configuration du plugin Klereo.', __FILE__));
+    }
+    if (self::maintenance_ongoing()) {
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . $_function_name . ' / ' . __FUNCTION__ . ' ' . __('maintenance en cours : requête non envoyée', __FILE__));
+      return [null, null];
     }
     $default_setopt_array = [
       CURLOPT_USERAGENT       => self::$_USER_AGENT,
@@ -148,7 +191,7 @@ class klereo extends eqLogic {
   static function getJwtToken() {
     $config_jwt_login_dt = self::getFromCache('login_dt', '2000-01-01 00:00:00');
     $expire_dt = strtotime(self::$_ACTUALIZE_TIME_JWT . ' ' . $config_jwt_login_dt);
-    if (strtotime(self::now()) >= $expire_dt || self::getFromCache('jwt_token', '') === '') {
+    if (!self::maintenance_ongoing() && (strtotime(self::now()) >= $expire_dt || self::getFromCache('jwt_token', '') === '')) {
       $post_data = [
         'login'     => config::byKey('login', __CLASS__),
         'password'  => sha1(config::byKey('password', __CLASS__)),
@@ -175,7 +218,7 @@ class klereo extends eqLogic {
   static function getIndex() {
     $config_getIndex_dt = self::getFromCache('getIndex_dt', '2000-01-01 00:00:00');
     $expire_dt = strtotime(self::$_ACTUALIZE_TIME_GETINDEX . ' ' . $config_getIndex_dt);
-    if (strtotime(self::now()) >= $expire_dt || self::getFromCache('getIndex', '') === '') {
+    if (!self::maintenance_ongoing() && (strtotime(self::now()) >= $expire_dt || self::getFromCache('getIndex', '') === '')) {
       $curl_setopt_array = [
         CURLOPT_URL         => self::$_API_ROOT . 'GetIndex.php',
         CURLOPT_POST        => false,
@@ -244,39 +287,56 @@ class klereo extends eqLogic {
         
         $Filtration_TodayTime = $eqKlereo->getCmd('info', 'Filtration_TodayTime');
         if ($Filtration_TodayTime) {
-          $totalTime = $details['params']['Filtration_TodayTime'] / 3600;
-          $Filtration_TodayTime->adjustMinMax(floor($totalTime), ceil($totalTime));
-          $eqKlereo->checkAndUpdateCmd($Filtration_TodayTime, $totalTime);
+          $value = $details['params']['Filtration_TodayTime'] / 3600;
+          $Filtration_TodayTime->adjustMinMax(floor($value), ceil($value));
+          $eqKlereo->checkAndUpdateCmd($Filtration_TodayTime, $value);
         }
         $Filtration_TotalTime = $eqKlereo->getCmd('info', 'Filtration_TotalTime');
         if ($Filtration_TotalTime) {
-          $totalTime = $details['params']['Filtration_TotalTime'] / 3600;
-          $Filtration_TotalTime->adjustMinMax(floor($totalTime), ceil($totalTime));
-          $eqKlereo->checkAndUpdateCmd($Filtration_TotalTime, $totalTime);
+          $value = $details['params']['Filtration_TotalTime'] / 3600;
+          $Filtration_TotalTime->adjustMinMax(floor($value), ceil($value));
+          $eqKlereo->checkAndUpdateCmd($Filtration_TotalTime, $value);
         }
         $PHMinus_Today = $eqKlereo->getCmd('info', 'PHMinus_Today');
         if ($PHMinus_Today) {
-          $totalPHMinus = $details['params']['PHMinus_TodayTime'] * $details['params']['PHMinus_Debit'] / 36;
-          $PHMinus_Today->adjustMinMax(floor($totalPHMinus), ceil($totalPHMinus));
-          $eqKlereo->checkAndUpdateCmd($PHMinus_Today, $totalPHMinus);
+          $value = $details['params']['PHMinus_TodayTime'] * $details['params']['PHMinus_Debit'] / 36;
+          $PHMinus_Today->adjustMinMax(floor($value), ceil($value));
+          $eqKlereo->checkAndUpdateCmd($PHMinus_Today, $value);
         }
         $PHMinus_Total = $eqKlereo->getCmd('info', 'PHMinus_Total');
         if ($PHMinus_Total) {
-          $totalPHMinus = $details['params']['PHMinus_TotalTime'] * $details['params']['PHMinus_Debit'] / 36000;
-          $PHMinus_Total->adjustMinMax(floor($totalPHMinus), ceil($totalPHMinus));
-          $eqKlereo->checkAndUpdateCmd($PHMinus_Total, $totalPHMinus);
+          $value = $details['params']['PHMinus_TotalTime'] * $details['params']['PHMinus_Debit'] / 36000;
+          $PHMinus_Total->adjustMinMax(floor($value), ceil($value));
+          $eqKlereo->checkAndUpdateCmd($PHMinus_Total, $value);
+        }
+        $Elec_GramDone = $eqKlereo->getCmd('info', 'Elec_GramDone');
+        if ($Elec_GramDone) {
+          $value = $details['params']['Elec_GramDone'] / 1000;
+          $Elec_GramDone->adjustMinMax(floor($value), ceil($value));
+          $eqKlereo->checkAndUpdateCmd($Elec_GramDone, $value);
+        }
+        $HybChl_TodayTime = $eqKlereo->getCmd('info', 'HybChl_TodayTime');
+        if ($HybChl_TodayTime) {
+          $value = $details['ExtraParams']['HybChl_TodayTime'] * $details['params']['Chlore_Debit'] / 36;
+          $HybChl_TodayTime->adjustMinMax(floor($value), ceil($value));
+          $eqKlereo->checkAndUpdateCmd($HybChl_TodayTime, $value);
+        }
+        $HybChl_TotalTime = $eqKlereo->getCmd('info', 'HybChl_TotalTime');
+        if ($HybChl_TotalTime) {
+          $value = $details['ExtraParams']['HybChl_TotalTime'] * $details['params']['Chlore_Debit'] / 36000;
+          $HybChl_TotalTime->adjustMinMax(floor($value), ceil($value));
+          $eqKlereo->checkAndUpdateCmd($HybChl_TotalTime, $value);
         }
         $Chlore_Today = $eqKlereo->getCmd('info', 'Chlore_Today');
         if ($Chlore_Today) {
-          $totalChlore = $details['params']['ElectroChlore_TodayTime'] * $details['params']['Chlore_Debit'] / 36;
-          $Chlore_Today->adjustMinMax(floor($totalChlore), ceil($totalChlore));
-          $eqKlereo->checkAndUpdateCmd($Chlore_Today, $totalChlore);
+          $Chlore_Today->adjustMinMax(0, 24);
+          $eqKlereo->checkAndUpdateCmd($Chlore_Today, $details['params']['ElectroChlore_TodayTime'] / 3600);
         }
         $Chlore_Total = $eqKlereo->getCmd('info', 'Chlore_Total');
         if ($Chlore_Total) {
-          $totalChlore = $details['params']['ElectroChlore_TotalTime'] * $details['params']['Chlore_Debit'] / 36000;
-          $Chlore_Total->adjustMinMax(floor($totalChlore), ceil($totalChlore));
-          $eqKlereo->checkAndUpdateCmd($Chlore_Total, $totalChlore);
+          $value = $details['params']['ElectroChlore_TotalTime'] / 3600;
+          $Chlore_Total->adjustMinMax(floor($value), ceil($value));
+          $eqKlereo->checkAndUpdateCmd($Chlore_Total, $value);
         }
         $Filtration_TodayTime = $eqKlereo->getCmd('info', 'Filtration_TodayTime');
         if ($Filtration_TodayTime) {
@@ -285,9 +345,9 @@ class klereo extends eqLogic {
         }
         $Chauff_TotalTime = $eqKlereo->getCmd('info', 'Chauff_TotalTime');
         if ($Chauff_TotalTime) {
-          $totalTime = $details['params']['Chauff_TotalTime'] / 3600;
-          $Chauff_TotalTime->adjustMinMax(floor($totalTime), ceil($totalTime));
-          $eqKlereo->checkAndUpdateCmd($Chauff_TotalTime, $totalTime);
+          $value = $details['params']['Chauff_TotalTime'] / 3600;
+          $Chauff_TotalTime->adjustMinMax(floor($value), ceil($value));
+          $eqKlereo->checkAndUpdateCmd($Chauff_TotalTime, $value);
         }
         $Chauff_TodayTime = $eqKlereo->getCmd('info', 'Chauff_TodayTime');
         if ($Chauff_TodayTime) {
@@ -695,11 +755,22 @@ class klereo extends eqLogic {
           $this->createCmdInfo('PHMinus_Total', __('Consommation pH-Minus totale', __FILE__), 'numeric', $order, 0, 20, 'L');
         }
       }
+      if (isset($details['params']['Elec_GramDone'])) {
+        $this->createCmdInfo('Elec_GramDone', __('Production journalière de chlore par électrolyse', __FILE__), 'numeric', $order, 0, 300, 'g');
+      }
+      if (isset($details['ExtraParams'])) {
+        if (isset($details['ExtraParams']['HybChl_TodayTime'])) {
+          $this->createCmdInfo('HybChl_TodayTime', __('Chlore liquide : consommation jour', __FILE__), 'numeric', $order, 0, 300, 'mL');
+        }
+        if (isset($details['ExtraParams']['HybChl_TotalTime'])) {
+          $this->createCmdInfo('HybChl_TotalTime', __('Chlore liquide : consommation totale', __FILE__), 'numeric', $order, 0, 20, 'L');
+        }
+      }
       if (isset($details['params']['ElectroChlore_TodayTime'])) {
-        $this->createCmdInfo('Chlore_Today', __('Consommation chlore jour', __FILE__), 'numeric', $order, 0, 36, 'mL');
+        $this->createCmdInfo('Chlore_Today', __('Chlore liquide : temps de fonctionnement jour', __FILE__), 'numeric', $order, 0, 24, 'h');
       }
       if (isset($details['params']['ElectroChlore_TotalTime'])) {
-        $this->createCmdInfo('Chlore_Total', __('Consommation chlore totale', __FILE__), 'numeric', $order, 0, 10, 'L');
+        $this->createCmdInfo('Chlore_Total', __('Chlore liquide : temps de fonctionnement total', __FILE__), 'numeric', $order, 0, 5000, 'h');
       }
       if (isset($details['params']['HeaterMode']) && $details['params']['HeaterMode'] > 0) {
         if (isset($details['params']['Chauff_TodayTime'])) {
@@ -898,7 +969,7 @@ class klereo extends eqLogic {
     }
     $config_getPoolDetails_dt = $this->getCache('getPoolDetails_dt', '2000-01-01 00:00:00');
     $expire_dt = strtotime(self::$_ACTUALIZE_TIME_GETPOOLDETAILS . ' ' . $config_getPoolDetails_dt);
-    if (strtotime(self::now()) >= $expire_dt || $_force || $this->getCache('getPoolDetails', '') === '') {
+    if (!self::maintenance_ongoing() && (strtotime(self::now()) >= $expire_dt || $_force || $this->getCache('getPoolDetails', '') === '')) {
       $post_data = [
         'poolID'  => intval($eqPoolId),
         'lang'    => substr(translate::getLanguage(), 0, 2)
@@ -1039,7 +1110,7 @@ class klereo extends eqLogic {
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ': ' . sprintf("_out_index = '%s', _mode = '%s', _state = '%s'",
                                                                                   var_export($_out_index, true), var_export($_mode, true), var_export($_state, true)));
     $eqPoolId = $this->getConfiguration('eqPoolId', '');
-    if ($eqPoolId === '') {
+    if ($eqPoolId === '' || self::maintenance_ongoing()) {
       return;
     }
     if (!array_key_exists($eqPoolId, self::getPools())) {
@@ -1095,7 +1166,7 @@ class klereo extends eqLogic {
   function setParam($_param, $_newValue) {
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("_param = '%s', _newValue = '%s'", var_export($_param, true), var_export($_newValue, true)));
     $eqPoolId = $this->getConfiguration('eqPoolId', '');
-    if ($eqPoolId === '') {
+    if ($eqPoolId === '' || self::maintenance_ongoing()) {
       return;
     }
     if (!array_key_exists($eqPoolId, self::getPools())) {
@@ -1133,7 +1204,7 @@ class klereo extends eqLogic {
   function setAutoOff($_outIdx, $_offDelay) {
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("_outIdx = '%s', _newDelay = '%s'", var_export($_outIdx, true), var_export($_newDelay, true)));
     $eqPoolId = $this->getConfiguration('eqPoolId', '');
-    if ($eqPoolId === '') {
+    if ($eqPoolId === '' || self::maintenance_ongoing()) {
       return;
     }
     if (!array_key_exists($eqPoolId, self::getPools())) {
@@ -1170,7 +1241,9 @@ class klereo extends eqLogic {
   
   function waitCommand($_cmd_id) {
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("_cmd_id = '%s'", var_export($_cmd_id, true)));
-    
+    if (self::maintenance_ongoing()) {
+      return;
+    }
     $post_data = [
       'cmdID' => $_cmd_id
     ];

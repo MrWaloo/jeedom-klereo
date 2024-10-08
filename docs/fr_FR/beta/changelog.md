@@ -10,6 +10,27 @@
 - Créer un widget
 - Permettre de modifier les plages horaires du mode 'Plage' pour les sorties qui peuvent être pilotées dans ce mode
 
+## 08/10/2024 V1.0 stable
+
+La version bêta devient stable, les deux versions sont alignées
+
+## 03/09/2024 V0.7 beta
+
+Documentation OK
+
+### Corrections
+- Calcul de la consommation de chlore liquide et chlore produit
+
+### Fonctionalités
+- Ajout de ces informations (si disponible) :
+  - la production journalière de chlore par électrolyse,
+  - la consommation de chlore liquide du jour,
+  - la consommation de chlore liquide totale,
+  - la durée d'injection de chlore liquide du jour,
+  - la durée d'injection de chlore liquide totale
+- Le plugin n'intérrogera plus le site de Klereo durant les maintenances du site. Ces maintenaces sont planifiées à l'identique toutes
+les semaines et sont codées en dur dans le plugin en attendant que ces plages ne soient renseignées dans la réponse de l'API
+
 ## 12/08/2024 V0.6 beta
 
 Documentation OK
