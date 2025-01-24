@@ -34,7 +34,7 @@ class klereo extends eqLogic {
   */
   public static $_encryptConfigKey = ['login', 'password'];
 
-  public static $_version = '1.1 beta1';
+  public static $_version = '1.0.1 stable';
   
   static $_WEB_VERSION = '392-W';
   static $_API_ROOT = 'https://connect.klereo.fr/php/';
