@@ -34,7 +34,7 @@ class klereo extends eqLogic {
   */
   public static $_encryptConfigKey = ['login', 'password'];
 
-  public static $_version = '1.0 stable';
+  public static $_version = '1.0.1 stable';
   
   static $_WEB_VERSION = '392-W';
   static $_API_ROOT = 'https://connect.klereo.fr/php/';
@@ -42,10 +42,14 @@ class klereo extends eqLogic {
   
   // Time between 2 actualizations (compatible with strtotime())
   static $_ACTUALIZE_TIME_JWT = '+55 minutes';
-  static $_ACTUALIZE_TIME_GETINDEX = '+3 hours 55 minutes'; // DEBUG: '+24 hours' /// '+1 minute'
+  static $_ACTUALIZE_TIME_GETINDEX = '+3 hours 55 minutes'; // DEBUG: '+24 hours' // '+1 minute'
   static $_ACTUALIZE_TIME_GETPOOLDETAILS = '+9 minutes 50 seconds';
 
   static $_MAINTENANCES = [
+    // day_of_week => [
+    //   'from'  => hhmm,
+    //   'to'    => hhmm
+    // ]
     0 => [
       'from'  => 145,
       'to'    => 445
@@ -143,7 +147,7 @@ class klereo extends eqLogic {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Paramètres insuffisants.', __FILE__));
     }
     if (config::byKey('login', __CLASS__, '') === '' || config::byKey('password', __CLASS__, '') === '') {
-      throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Les informations de connexions doivent être renseignées dans la configuration du plugin Klereo.', __FILE__));
+      throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Les informations de connexion doivent être renseignées dans la configuration du plugin Klereo.', __FILE__));
     }
     if (self::maintenance_ongoing()) {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . $_function_name . ' / ' . __FUNCTION__ . ' ' . __('maintenance en cours : requête non envoyée', __FILE__));
@@ -546,7 +550,7 @@ class klereo extends eqLogic {
                 $param_text = __('pompe numéro', __FILE__) . ' ' . strval($alert_param);
               }
               if ($alerts_value != '') {
-                $alerts_value += ' || ';
+                $alerts_value .= ' || ';
               }
               
               if (in_array($alert_code, array_keys($alerts_arr))) {
