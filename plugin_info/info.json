@@ -17,14 +17,14 @@
   "changelog_beta" : "https://mrwaloo.github.io/jeedom-plugins-doc/#language#/klereo_changelog",
   "documentation_beta" : "https://mrwaloo.github.io/jeedom-plugins-doc/#language#/klereo_doc",
   "languages" : ["fr_FR"],
-    "compatibility": [
-      "miniplus",
-      "smart",
-      "rpi",
-      "docker",
-      "diy",
-      "atlas",
-      "luna",
-      "v4"
-    ]
+  "compatibility": [
+    "miniplus",
+    "smart",
+    "rpi",
+    "docker",
+    "diy",
+    "atlas",
+    "luna",
+    "v4"
+  ]
 }
