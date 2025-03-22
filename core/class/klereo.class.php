@@ -113,8 +113,10 @@ class klereo extends eqLogic {
     cache::delete('pluginCacheAttr' . __CLASS__);
     
     $eqLogics = self::byType(__CLASS__);
-    foreach ($eqLogics as $eqLogic) {
-      $eqLogic->remove();
+    if (is_array($eqLogics)) {
+      foreach ($eqLogics as $eqLogic) {
+        $eqLogic->remove();
+      }
     }
   }
   
@@ -209,10 +211,19 @@ class klereo extends eqLogic {
       [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("header = *'%s'*", $header));
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body = *'%s'*", var_export($body, true)));
-      $jwt = $body['jwt'];
-      self::saveToCache('login_dt', self::now());
-      self::saveToCache('jwt_token', utils::encrypt($jwt), 55 * 60); // lifetime = 55 minutes
-      return $jwt;
+
+      if (isset($body['status']) && $body['status'] === 'error' && isset($body['detail']) && strstr(strtolower($body['detail']), 'maintenance')) {
+        log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
+        return false;
+
+      } else {
+        $jwt = $body['jwt'];
+        self::saveToCache('login_dt', self::now());
+        self::saveToCache('jwt_token', utils::encrypt($jwt), 55 * 60); // lifetime = 55 minutes
+        return $jwt;
+
+      }
+
     } else {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("No actualisation, next actualisation at *'%s'*", date('d.m.Y H:i:s', $expire_dt)));
     }
@@ -222,13 +233,14 @@ class klereo extends eqLogic {
   static function getIndex() {
     $config_getIndex_dt = self::getFromCache('getIndex_dt', '2000-01-01 00:00:00');
     $expire_dt = strtotime(self::$_ACTUALIZE_TIME_GETINDEX . ' ' . $config_getIndex_dt);
-    if (!self::maintenance_ongoing() && (strtotime(self::now()) >= $expire_dt || self::getFromCache('getIndex', '') === '')) {
+    $jwt_token = self::getJwtToken();
+    if ($jwt_token != false && !self::maintenance_ongoing() && (strtotime(self::now()) >= $expire_dt || self::getFromCache('getIndex', '') === '')) {
       $curl_setopt_array = [
         CURLOPT_URL         => self::$_API_ROOT . 'GetIndex.php',
         CURLOPT_POST        => false,
         CURLOPT_HTTPHEADER  => [
           'User-Agent: ' . self::$_USER_AGENT,
-          'Authorization: Bearer ' . self::getJwtToken()
+          'Authorization: Bearer ' . $jwt_token
         ]
       ];
       [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
@@ -237,17 +249,25 @@ class klereo extends eqLogic {
         self::saveToCache('getIndex_dt', self::now());
         self::saveToCache('getIndex', $getIndex, 3 * 3600 + 55 * 60); // lifetime = 3 heures et 55 minutes
         return $getIndex;
+
+      } elseif (isset($body['status']) && $body['status'] === 'error' && isset($body['detail']) && strstr(strtolower($body['detail']), 'maintenance')) {
+        log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
+        return false;
+        
       } else {
         throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de la réception de la liste des bassins.', __FILE__));
       }
     } else {
-      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("No actualisation, next actualisation at *'%s'*", date('d.m.Y H:i:s', $expire_dt)));
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("No actualisation or maintenance ongoing, next actualisation at *'%s'*", date('d.m.Y H:i:s', $expire_dt)));
     }
     return self::getFromCache('getIndex');
   }
   
   static function getPools() {
     $getIndex = self::getIndex();
+    if ($getIndex === false) {
+      return false;
+    }
     $getPools = [];
     foreach ($getIndex as $pool) {
       $getPools[$pool['idSystem']] = $pool['poolNickname'];
@@ -262,6 +282,10 @@ class klereo extends eqLogic {
       if ($eqKlereo->getIsEnable() && $eqKlereo->getConfiguration('eqPoolId', '') != '') {
         $probes = $eqKlereo->getProbesInfos();
         log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf(" + probes = '%s'", var_export($probes, true)));
+        if (is_null($probes)) {
+          log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __('No probes found', __FILE__));
+          continue;
+        }
         
         foreach ($probes as $probe) {
           $filteredCmd = $eqKlereo->getCmd('info', $probe['logicalId'] . '_filtered');
@@ -281,6 +305,9 @@ class klereo extends eqLogic {
         //$poolNickname = $details['poolNickname'];
         
         $getIndex = self::getIndex();
+        if ($getIndex === false) {
+          return false;
+        }
         $pool = null;
         foreach ($getIndex as $pool_info) {
           if ($pool_info['idSystem'] === $pool_id) {
@@ -719,8 +746,12 @@ class klereo extends eqLogic {
       return true;
     }
     
+    $getIndex = self::getIndex();
     $probes = $this->getProbesInfos();
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ': ' . sprintf("probes = '%s'", var_export($probes, true)));
+    if (is_null($getIndex) || is_null($probes)) {
+      return true;
+    }
     
     $order = $this->getNextOrder();
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ': ' . sprintf("order = '%s'", var_export($order, true)));
@@ -734,9 +765,8 @@ class klereo extends eqLogic {
     
     $details = $this->getPoolDetails();
     $pool_id = $details['idSystem'];
-    
-    $getIndex = self::getIndex();
     $pool = null;
+
     foreach ($getIndex as $pool_info) {
       if ($pool_info['idSystem'] === $pool_id) {
         $pool = $pool_info;
@@ -973,7 +1003,8 @@ class klereo extends eqLogic {
     }
     $config_getPoolDetails_dt = $this->getCache('getPoolDetails_dt', '2000-01-01 00:00:00');
     $expire_dt = strtotime(self::$_ACTUALIZE_TIME_GETPOOLDETAILS . ' ' . $config_getPoolDetails_dt);
-    if (!self::maintenance_ongoing() && (strtotime(self::now()) >= $expire_dt || $_force || $this->getCache('getPoolDetails', '') === '')) {
+    $jwt_token = self::getJwtToken();
+    if ($jwt_token != false && !self::maintenance_ongoing() && (strtotime(self::now()) >= $expire_dt || $_force || $this->getCache('getPoolDetails', '') === '')) {
       $post_data = [
         'poolID'  => intval($eqPoolId),
         'lang'    => substr(translate::getLanguage(), 0, 2)
@@ -983,7 +1014,7 @@ class klereo extends eqLogic {
         CURLOPT_POST        => true,
         CURLOPT_HTTPHEADER  => [
           'User-Agent: ' . self::$_USER_AGENT,
-          'Authorization: Bearer ' . self::getJwtToken()
+          'Authorization: Bearer ' . $jwt_token
         ],
         CURLOPT_POSTFIELDS  => $post_data
       ];
@@ -993,11 +1024,16 @@ class klereo extends eqLogic {
         $this->setCache('getPoolDetails_dt', self::now());
         $this->setCache('getPoolDetails', $getPoolDetails, 9 * 60 + 50); // lifetime = 9 minutes et 50 secondes
         return $getPoolDetails;
+
+      } elseif (isset($body['status']) && $body['status'] === 'error' && isset($body['detail']) && strstr(strtolower($body['detail']), 'maintenance')) {
+        log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
+        return false;
+
       } else {
         throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de la réception des détails du bassin.', __FILE__));
       }
     } else {
-      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("No actualisation, next actualisation at *'%s'*", date('d.m.Y H:i:s', $expire_dt)));
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("No actualisation or maintenance ongoing, next actualisation at *'%s'*", date('d.m.Y H:i:s', $expire_dt)));
     }
     return $this->getCache('getPoolDetails');
   }
@@ -1043,10 +1079,11 @@ class klereo extends eqLogic {
   
   function getProbesInfos() {
     $eqPoolId = $this->getConfiguration('eqPoolId', '');
-    if ($eqPoolId === '') {
-      return;
+    $getPools = self::getPools();
+    if ($eqPoolId === '' || $getPools === false || self::maintenance_ongoing()) {
+      return null;
     }
-    if (!array_key_exists($eqPoolId, self::getPools())) {
+    if (!array_key_exists($eqPoolId, $getPools)) {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de la réception des mesures du bassin&nbsp;: bassin inconnu.', __FILE__));
     }
     $details = $this->getPoolDetails();
@@ -1114,10 +1151,12 @@ class klereo extends eqLogic {
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ': ' . sprintf("_out_index = '%s', _mode = '%s', _state = '%s'",
                                                                                   var_export($_out_index, true), var_export($_mode, true), var_export($_state, true)));
     $eqPoolId = $this->getConfiguration('eqPoolId', '');
-    if ($eqPoolId === '' || self::maintenance_ongoing()) {
-      return;
+    $jwt_token = self::getJwtToken();
+    $getPools = self::getPools();
+    if ($jwt_token === false || $getPools === false || $eqPoolId === '' || self::maintenance_ongoing()) {
+      return false;
     }
-    if (!array_key_exists($eqPoolId, self::getPools())) {
+    if (!array_key_exists($eqPoolId, $getPools)) {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Ce bassin n\'est pas rattaché à votre compte.', __FILE__));
     }
     $details = $this->getPoolDetails();
@@ -1150,7 +1189,7 @@ class klereo extends eqLogic {
       CURLOPT_POST        => true,
       CURLOPT_HTTPHEADER  => [
         'User-Agent: ' . self::$_USER_AGENT,
-        'Authorization: Bearer ' . self::getJwtToken()
+        'Authorization: Bearer ' . $jwt_token
       ],
       CURLOPT_POSTFIELDS  => $post_data
     ];
@@ -1162,6 +1201,10 @@ class klereo extends eqLogic {
       $cmdID = $body['response'][0]['cmdID'];
       return $cmdID;
       
+    } elseif(isset($body['status']) && $body['status'] === 'error' && isset($body['detail']) && strstr(strtolower($body['detail']), 'maintenance')) {
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
+      return false;
+
     } else {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de l\'envoi de la commande.', __FILE__));
     }
@@ -1170,10 +1213,12 @@ class klereo extends eqLogic {
   function setParam($_param, $_newValue) {
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("_param = '%s', _newValue = '%s'", var_export($_param, true), var_export($_newValue, true)));
     $eqPoolId = $this->getConfiguration('eqPoolId', '');
-    if ($eqPoolId === '' || self::maintenance_ongoing()) {
-      return;
+    $jwt_token = self::getJwtToken();
+    $getPools = self::getPools();
+    if ($jwt_token === false || $getPools === false || $eqPoolId === '' || self::maintenance_ongoing()) {
+      return false;
     }
-    if (!array_key_exists($eqPoolId, self::getPools())) {
+    if (!array_key_exists($eqPoolId, $getPools)) {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Ce bassin n\'est pas rattaché à votre compte.', __FILE__));
     }
     
@@ -1188,7 +1233,7 @@ class klereo extends eqLogic {
       CURLOPT_POST        => true,
       CURLOPT_HTTPHEADER  => [
         'User-Agent: ' . self::$_USER_AGENT,
-        'Authorization: Bearer ' . self::getJwtToken()
+        'Authorization: Bearer ' . $jwt_token
       ],
       CURLOPT_POSTFIELDS  => $post_data
     ];
@@ -1199,6 +1244,10 @@ class klereo extends eqLogic {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body['response'] = '%s'", var_export($body['response'], true)));
       $cmdID = $body['response'][0]['cmdID'];
       return $cmdID;
+
+    } elseif (isset($body['status']) && $body['status'] === 'error' && isset($body['detail']) && strstr(strtolower($body['detail']), 'maintenance')) {
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
+      return false;
       
     } else {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de l\'envoi de la commande.', __FILE__));
@@ -1208,10 +1257,12 @@ class klereo extends eqLogic {
   function setAutoOff($_outIdx, $_offDelay) {
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("_outIdx = '%s', _newDelay = '%s'", var_export($_outIdx, true), var_export($_newDelay, true)));
     $eqPoolId = $this->getConfiguration('eqPoolId', '');
-    if ($eqPoolId === '' || self::maintenance_ongoing()) {
-      return;
+    $jwt_token = self::getJwtToken();
+    $getPools = self::getPools();
+    if ($jwt_token === false || $getPools === false || $eqPoolId === '' || self::maintenance_ongoing()) {
+      return false;
     }
-    if (!array_key_exists($eqPoolId, self::getPools())) {
+    if (!array_key_exists($eqPoolId, $getPools)) {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Ce bassin n\'est pas rattaché à votre compte.', __FILE__));
     }
     
@@ -1226,7 +1277,7 @@ class klereo extends eqLogic {
       CURLOPT_POST        => true,
       CURLOPT_HTTPHEADER  => [
         'User-Agent: ' . self::$_USER_AGENT,
-        'Authorization: Bearer ' . self::getJwtToken()
+        'Authorization: Bearer ' . $jwt_token
       ],
       CURLOPT_POSTFIELDS  => $post_data
     ];
@@ -1237,6 +1288,10 @@ class klereo extends eqLogic {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body['response'] = '%s'", var_export($body['response'], true)));
       $cmdID = $body['response'][0]['cmdID'];
       return $cmdID;
+
+    } elseif (isset($body['status']) && $body['status'] === 'error' && isset($body['detail']) && strstr(strtolower($body['detail']), 'maintenance')) {
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
+      return false;
       
     } else {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de l\'envoi de la commande.', __FILE__));
@@ -1245,7 +1300,8 @@ class klereo extends eqLogic {
   
   function waitCommand($_cmd_id) {
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("_cmd_id = '%s'", var_export($_cmd_id, true)));
-    if (self::maintenance_ongoing()) {
+    $jwt_token = self::getJwtToken();
+    if ($jwt_token === false || self::maintenance_ongoing() || is_null($_cmd_id)) {
       return;
     }
     $post_data = [
@@ -1256,7 +1312,7 @@ class klereo extends eqLogic {
       CURLOPT_POST        => true,
       CURLOPT_HTTPHEADER  => [
         'User-Agent: ' . self::$_USER_AGENT,
-        'Authorization: Bearer ' . self::getJwtToken()
+        'Authorization: Bearer ' . $jwt_token
       ],
       CURLOPT_POSTFIELDS  => $post_data
     ];
@@ -1266,6 +1322,10 @@ class klereo extends eqLogic {
     if (isset($body['response']) && is_array($body['response']) && isset($body['response']['status'])) {
       $status = $body['response']['status'];
       return $status;
+
+    } elseif (isset($body['status']) && $body['status'] === 'error' && isset($body['detail']) && strstr(strtolower($body['detail']), 'maintenance')) {
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
+      return;
       
     } else {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de la vérification de la commande.', __FILE__));
@@ -1578,6 +1638,19 @@ class klereoCmd extends cmd {
       // En cas de changement de mode ou d'état -> setOut
       if ($newMode != $curMode || $newState != $curState) {
         $cmdID = $eqKlereo->setOut($outIndex, $newMode, $newState);
+        if ($cmdID !== false) {
+          $status = $eqKlereo->waitCommand($cmdID);
+          if ($status === 9) {
+            $eqKlereo->getPoolDetails(true);
+            klereo::actualizeValues();
+          }
+        }
+      }
+      
+    // *-*-*-*-*-*-*-*-*-*-*-* Commande 'Consigne' *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    } elseif (substr($logicalId, 0, 8) === 'Consigne') {
+      $cmdID = $eqKlereo->setParam($logicalId, floatval($_option['slider']));
+      if ($cmdID !== false) {
         $status = $eqKlereo->waitCommand($cmdID);
         if ($status === 9) {
           $eqKlereo->getPoolDetails(true);
@@ -1585,23 +1658,16 @@ class klereoCmd extends cmd {
         }
       }
       
-    // *-*-*-*-*-*-*-*-*-*-*-* Commande 'Consigne' *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    } elseif (substr($logicalId, 0, 8) === 'Consigne') {
-      $cmdID = $eqKlereo->setParam($logicalId, floatval($_option['slider']));
-      $status = $eqKlereo->waitCommand($cmdID);
-      if ($status === 9) {
-        $eqKlereo->getPoolDetails(true);
-        klereo::actualizeValues();
-      }
-      
     // *-*-*-*-*-*-*-*-*-*-*-* Commande 'offDelay' *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     } elseif (substr($logicalId, 0, 8) === 'offDelay') {
       $outIndex = intval(substr($logicalId, -3));
       $cmdID = $eqKlereo->setAutoOff($outIndex, floatval($_option['slider']));
-      $status = $eqKlereo->waitCommand($cmdID);
-      if ($status === 9) {
-        $eqKlereo->getPoolDetails(true);
-        klereo::actualizeValues();
+      if ($cmdID !== false) {
+        $status = $eqKlereo->waitCommand($cmdID);
+        if ($status === 9) {
+          $eqKlereo->getPoolDetails(true);
+          klereo::actualizeValues();
+        }
       }
     }
   }
