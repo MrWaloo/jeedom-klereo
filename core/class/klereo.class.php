@@ -359,7 +359,7 @@ class klereo extends eqLogic {
             $HybChl_TotalTime->adjustMinMax(floor($value), ceil($value));
             $eqKlereo->checkAndUpdateCmd($HybChl_TotalTime, $value);
           }
-        else {
+        } else {
           $ElectroChlore_TodayTime = $eqKlereo->getCmd('info', 'ElectroChlore_TodayTime');
           if ($ElectroChlore_TodayTime) {
             $value = $details['params']['ElectroChlore_TodayTime'] * $details['params']['Chlore_Debit'] / 36;
