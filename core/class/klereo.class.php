@@ -346,17 +346,32 @@ class klereo extends eqLogic {
           $Elec_GramDone->adjustMinMax(floor($value), ceil($value));
           $eqKlereo->checkAndUpdateCmd($Elec_GramDone, $value);
         }
-        $HybChl_TodayTime = $eqKlereo->getCmd('info', 'HybChl_TodayTime');
-        if ($HybChl_TodayTime) {
-          $value = $details['ExtraParams']['HybChl_TodayTime'] * $details['params']['Chlore_Debit'] / 36;
-          $HybChl_TodayTime->adjustMinMax(floor($value), ceil($value));
-          $eqKlereo->checkAndUpdateCmd($HybChl_TodayTime, $value);
-        }
-        $HybChl_TotalTime = $eqKlereo->getCmd('info', 'HybChl_TotalTime');
-        if ($HybChl_TotalTime) {
-          $value = $details['ExtraParams']['HybChl_TotalTime'] * $details['params']['Chlore_Debit'] / 36000;
-          $HybChl_TotalTime->adjustMinMax(floor($value), ceil($value));
-          $eqKlereo->checkAndUpdateCmd($HybChl_TotalTime, $value);
+        if (isset($details['HybrideMode']) && $details['HybrideMode'] === 1) {
+          $HybChl_TodayTime = $eqKlereo->getCmd('info', 'HybChl_TodayTime');
+          if ($HybChl_TodayTime) {
+            $value = $details['ExtraParams']['HybChl_TodayTime'] * $details['params']['Chlore_Debit'] / 36;
+            $HybChl_TodayTime->adjustMinMax(floor($value), ceil($value));
+            $eqKlereo->checkAndUpdateCmd($HybChl_TodayTime, $value);
+          }
+          $HybChl_TotalTime = $eqKlereo->getCmd('info', 'HybChl_TotalTime');
+          if ($HybChl_TotalTime) {
+            $value = $details['ExtraParams']['HybChl_TotalTime'] * $details['params']['Chlore_Debit'] / 36000;
+            $HybChl_TotalTime->adjustMinMax(floor($value), ceil($value));
+            $eqKlereo->checkAndUpdateCmd($HybChl_TotalTime, $value);
+          }
+        else {
+          $ElectroChlore_TodayTime = $eqKlereo->getCmd('info', 'ElectroChlore_TodayTime');
+          if ($ElectroChlore_TodayTime) {
+            $value = $details['params']['ElectroChlore_TodayTime'] * $details['params']['Chlore_Debit'] / 36;
+            $ElectroChlore_TodayTime->adjustMinMax(floor($value), ceil($value));
+            $eqKlereo->checkAndUpdateCmd($ElectroChlore_TodayTime, $value);
+          }
+          $ElectroChlore_TotalTime = $eqKlereo->getCmd('info', 'ElectroChlore_TotalTime');
+          if ($ElectroChlore_TotalTime) {
+            $value = $details['params']['ElectroChlore_TotalTime'] * $details['params']['Chlore_Debit'] / 36000;
+            $ElectroChlore_TotalTime->adjustMinMax(floor($value), ceil($value));
+            $eqKlereo->checkAndUpdateCmd($ElectroChlore_TotalTime, $value);
+          }
         }
         $Chlore_Today = $eqKlereo->getCmd('info', 'Chlore_Today');
         if ($Chlore_Today) {
@@ -792,12 +807,19 @@ class klereo extends eqLogic {
       if (isset($details['params']['Elec_GramDone'])) {
         $this->createCmdInfo('Elec_GramDone', __('Production journalière de chlore par électrolyse', __FILE__), 'numeric', $order, 0, 300, 'g');
       }
-      if (isset($details['ExtraParams'])) {
+      if (isset($details['HybrideMode']) && $details['HybrideMode'] === 1) {
         if (isset($details['ExtraParams']['HybChl_TodayTime'])) {
           $this->createCmdInfo('HybChl_TodayTime', __('Chlore liquide : consommation jour', __FILE__), 'numeric', $order, 0, 300, 'mL');
         }
         if (isset($details['ExtraParams']['HybChl_TotalTime'])) {
           $this->createCmdInfo('HybChl_TotalTime', __('Chlore liquide : consommation totale', __FILE__), 'numeric', $order, 0, 20, 'L');
+        }
+      } else {
+        if (isset($details['params']['ElectroChlore_TodayTime'])) {
+          $this->createCmdInfo('ElectroChlore_TodayTime', __('Chlore liquide : consommation jour', __FILE__), 'numeric', $order, 0, 500, 'mL');
+        }
+        if (isset($details['params']['ElectroChlore_TotalTime'])) {
+          $this->createCmdInfo('ElectroChlore_TotalTime', __('Chlore liquide : consommation totale', __FILE__), 'numeric', $order, 0, 20, 'L');
         }
       }
       if (isset($details['params']['ElectroChlore_TodayTime'])) {
