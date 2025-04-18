@@ -24,11 +24,6 @@ $eqLogics = eqLogic::byType($plugin->getId());
         <br>
         <span>{{Configuration}}</span>
       </div>
-      <div class="cursor eqLogicAction logoSecondary" data-action="bt_docSpecific" >
-        <i class="fas fa-book"style="font-size:6em;color:#0F9DE8;"></i>
-        <br>
-        <span>{{Documentation}}</span>
-      </div>
     </div>
     <legend><i class="fas fa-swimming-pool"></i>{{Mes piscines Klereo}}</legend>
     <?php
