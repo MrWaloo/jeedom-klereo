@@ -34,7 +34,7 @@ class klereo extends eqLogic {
   */
   public static $_encryptConfigKey = ['login', 'password'];
 
-  public static $_version = '1.0.2 stable';
+  public static $_version = '1.0.3 bêta';
   
   static $_WEB_VERSION = '392-W';
   static $_API_ROOT = 'https://connect.klereo.fr/php/';
@@ -212,7 +212,7 @@ class klereo extends eqLogic {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("header = *'%s'*", $header));
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body = *'%s'*", var_export($body, true)));
 
-      if (isset($body['status']) && $body['status'] === 'error' && isset($body['detail']) && strstr(strtolower($body['detail']), 'maintenance')) {
+      if (isset($body['status']) && stripos($body['status'], 'error') && isset($body['detail']) && stripos($body['detail'], 'maintenance')) {
         log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
         return false;
 
@@ -250,7 +250,7 @@ class klereo extends eqLogic {
         self::saveToCache('getIndex', $getIndex, 3 * 3600 + 55 * 60); // lifetime = 3 heures et 55 minutes
         return $getIndex;
 
-      } elseif (isset($body['status']) && $body['status'] === 'error' && isset($body['detail']) && strstr(strtolower($body['detail']), 'maintenance')) {
+      } elseif (isset($body['status']) && stripos($body['status'], 'error') && isset($body['detail']) && stripos($body['detail'], 'maintenance')) {
         log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
         return false;
         
@@ -1047,7 +1047,7 @@ class klereo extends eqLogic {
         $this->setCache('getPoolDetails', $getPoolDetails, 9 * 60 + 50); // lifetime = 9 minutes et 50 secondes
         return $getPoolDetails;
 
-      } elseif (isset($body['status']) && $body['status'] === 'error' && isset($body['detail']) && strstr(strtolower($body['detail']), 'maintenance')) {
+      } elseif (isset($body['status']) && stripos($body['status'], 'error') && isset($body['detail']) && stripos($body['detail'], 'maintenance')) {
         log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
         return false;
 
@@ -1223,7 +1223,7 @@ class klereo extends eqLogic {
       $cmdID = $body['response'][0]['cmdID'];
       return $cmdID;
       
-    } elseif(isset($body['status']) && $body['status'] === 'error' && isset($body['detail']) && strstr(strtolower($body['detail']), 'maintenance')) {
+    } elseif(isset($body['status']) && stripos($body['status'], 'error') && isset($body['detail']) && stripos($body['detail'], 'maintenance')) {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
       return false;
 
@@ -1267,7 +1267,7 @@ class klereo extends eqLogic {
       $cmdID = $body['response'][0]['cmdID'];
       return $cmdID;
 
-    } elseif (isset($body['status']) && $body['status'] === 'error' && isset($body['detail']) && strstr(strtolower($body['detail']), 'maintenance')) {
+    } elseif (isset($body['status']) && stripos($body['status'], 'error') && isset($body['detail']) && stripos($body['detail'], 'maintenance')) {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
       return false;
       
@@ -1311,7 +1311,7 @@ class klereo extends eqLogic {
       $cmdID = $body['response'][0]['cmdID'];
       return $cmdID;
 
-    } elseif (isset($body['status']) && $body['status'] === 'error' && isset($body['detail']) && strstr(strtolower($body['detail']), 'maintenance')) {
+    } elseif (isset($body['status']) && stripos($body['status'], 'error') && isset($body['detail']) && stripos($body['detail'], 'maintenance')) {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
       return false;
       
@@ -1345,7 +1345,7 @@ class klereo extends eqLogic {
       $status = $body['response']['status'];
       return $status;
 
-    } elseif (isset($body['status']) && $body['status'] === 'error' && isset($body['detail']) && strstr(strtolower($body['detail']), 'maintenance')) {
+    } elseif (isset($body['status']) && stripos($body['status'], 'error') && isset($body['detail']) && stripos($body['detail'], 'maintenance')) {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
       return;
       
