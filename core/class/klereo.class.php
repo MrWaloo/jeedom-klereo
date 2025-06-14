@@ -34,7 +34,7 @@ class klereo extends eqLogic {
   */
   public static $_encryptConfigKey = ['login', 'password'];
 
-  public static $_version = '1.0.3 bêta1';
+  public static $_version = '1.0.3 bêta2';
   
   static $_WEB_VERSION = '393-J';
   static $_API_ROOT = 'https://connect.klereo.fr/php/';
@@ -182,16 +182,20 @@ class klereo extends eqLogic {
     }
     $header_size = $curl_info['header_size'];
     $header = substr($page_content, 0, $header_size);
-    $body = substr($page_content, $header_size);  
-    $response = json_decode($body, true);
-    if (!is_array($response) || !isset($response['status'])) {
-      throw new Exception(__CLASS__ . '::' . $_function_name . '&nbsp;:</br>' . __('Réponse inatendue&nbsp;: ', __FILE__) . $body);
+    $body_raw = substr($page_content, $header_size);
+    $body = json_decode($body_raw, true);
+    if (!is_array($body) || !isset($body['status'])) {
+      throw new Exception(__CLASS__ . '::' . $_function_name . '&nbsp;:</br>' . __('Réponse inattendue&nbsp;: ', __FILE__) . $body);
     }
-    if ($response['status'] != 'ok') {
-      throw new Exception(__CLASS__ . '::' . $_function_name . '&nbsp;:</br>' . __('Echec de la requête&nbsp;: ', __FILE__) . (isset($response['detail']) ? $response['detail'] : __('pas de détail retourné.', __FILE__)));
+    if (isset($body['status']) && stripos($body['status'], 'error') && isset($body['detail']) && stripos($body['detail'], 'maintenance')) {
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . $_function_name . ' / ' . __("Maintenance en cours", __FILE__));
+      return [null, null];
+    }
+    if ($body['status'] != 'ok') {
+      throw new Exception(__CLASS__ . '::' . $_function_name . '&nbsp;:</br>' . __('Echec de la requête&nbsp;: ', __FILE__) . (isset($body['detail']) ? $body['detail'] : __('pas de détail retourné.', __FILE__)));
     }
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . $_function_name . ' / ' . __FUNCTION__ . ' return OK');
-    return [$header, $response];
+    return [$header, $body];
   }
   
   static function getJwtToken() {
@@ -212,16 +216,17 @@ class klereo extends eqLogic {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("header = *'%s'*", $header));
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body = *'%s'*", var_export($body, true)));
 
-      if (isset($body['status']) && stripos($body['status'], 'error') && isset($body['detail']) && stripos($body['detail'], 'maintenance')) {
-        log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
+      if (is_null($body) || is_null($header)) {
         return false;
 
-      } else {
+      } elseif (isset($body['jwt'])) {
         $jwt = $body['jwt'];
         self::saveToCache('login_dt', self::now());
         self::saveToCache('jwt_token', utils::encrypt($jwt), 55 * 60); // lifetime = 55 minutes
         return $jwt;
 
+      } else {
+        throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de la réception du token JWT.', __FILE__));
       }
 
     } else {
@@ -244,16 +249,15 @@ class klereo extends eqLogic {
         ]
       ];
       [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
-      if (isset($body['response']) && is_array($body['response'])) {
+      if (is_null($body) || is_null($header)) {
+        return false;
+
+      } elseif (isset($body['response']) && is_array($body['response'])) {
         $getIndex = $body['response'];
         self::saveToCache('getIndex_dt', self::now());
         self::saveToCache('getIndex', $getIndex, 3 * 3600 + 55 * 60); // lifetime = 3 heures et 55 minutes
         return $getIndex;
 
-      } elseif (isset($body['status']) && stripos($body['status'], 'error') && isset($body['detail']) && stripos($body['detail'], 'maintenance')) {
-        log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
-        return false;
-        
       } else {
         throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de la réception de la liste des bassins.', __FILE__));
       }
@@ -1041,15 +1045,14 @@ class klereo extends eqLogic {
         CURLOPT_POSTFIELDS  => $post_data
       ];
       [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
-      if (isset($body['response']) && is_array($body['response'])) {
+      if (is_null($body) || is_null($header)) {
+        return false;
+
+      } elseif (isset($body['response']) && is_array($body['response'])) {
         $getPoolDetails = $body['response'][0];
         $this->setCache('getPoolDetails_dt', self::now());
         $this->setCache('getPoolDetails', $getPoolDetails, 9 * 60 + 50); // lifetime = 9 minutes et 50 secondes
         return $getPoolDetails;
-
-      } elseif (isset($body['status']) && stripos($body['status'], 'error') && isset($body['detail']) && stripos($body['detail'], 'maintenance')) {
-        log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
-        return false;
 
       } else {
         throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de la réception des détails du bassin.', __FILE__));
@@ -1218,15 +1221,14 @@ class klereo extends eqLogic {
     [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body = '%s'", var_export($body, true)));
     
-    if (isset($body['status']) && $body['status'] === 'ok' && isset($body['response']) && is_array($body['response'])) {
+    if (is_null($body) || is_null($header)) {
+      return false;
+
+    } elseif (isset($body['status']) && $body['status'] === 'ok' && isset($body['response']) && is_array($body['response'])) {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body['response'] = '%s'", var_export($body['response'], true)));
       $cmdID = $body['response'][0]['cmdID'];
       return $cmdID;
       
-    } elseif(isset($body['status']) && stripos($body['status'], 'error') && isset($body['detail']) && stripos($body['detail'], 'maintenance')) {
-      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
-      return false;
-
     } else {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de l\'envoi de la commande.', __FILE__));
     }
@@ -1262,15 +1264,14 @@ class klereo extends eqLogic {
     [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body = '%s'", var_export($body, true)));
     
-    if (isset($body['status']) && $body['status'] === 'ok' && isset($body['response']) && is_array($body['response'])) {
+    if (is_null($body) || is_null($header)) {
+      return false;
+
+    } elseif (isset($body['status']) && $body['status'] === 'ok' && isset($body['response']) && is_array($body['response'])) {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body['response'] = '%s'", var_export($body['response'], true)));
       $cmdID = $body['response'][0]['cmdID'];
       return $cmdID;
 
-    } elseif (isset($body['status']) && stripos($body['status'], 'error') && isset($body['detail']) && stripos($body['detail'], 'maintenance')) {
-      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
-      return false;
-      
     } else {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de l\'envoi de la commande.', __FILE__));
     }
@@ -1306,14 +1307,13 @@ class klereo extends eqLogic {
     [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body = '%s'", var_export($body, true)));
     
-    if (isset($body['status']) && $body['status'] === 'ok' && isset($body['response']) && is_array($body['response'])) {
+    if (is_null($body) || is_null($header)) {
+      return false;
+      
+    } elseif (isset($body['status']) && $body['status'] === 'ok' && isset($body['response']) && is_array($body['response'])) {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body['response'] = '%s'", var_export($body['response'], true)));
       $cmdID = $body['response'][0]['cmdID'];
       return $cmdID;
-
-    } elseif (isset($body['status']) && stripos($body['status'], 'error') && isset($body['detail']) && stripos($body['detail'], 'maintenance')) {
-      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
-      return false;
       
     } else {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de l\'envoi de la commande.', __FILE__));
@@ -1341,13 +1341,12 @@ class klereo extends eqLogic {
     [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body = '%s'", var_export($body, true)));
     
-    if (isset($body['response']) && is_array($body['response']) && isset($body['response']['status'])) {
+    if (is_null($body) || is_null($header)) {
+      return false;
+      
+    } elseif (isset($body['response']) && is_array($body['response']) && isset($body['response']['status'])) {
       $status = $body['response']['status'];
       return $status;
-
-    } elseif (isset($body['status']) && stripos($body['status'], 'error') && isset($body['detail']) && stripos($body['detail'], 'maintenance')) {
-      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . __("Maintenance en cours", __FILE__));
-      return;
       
     } else {
       throw new Exception(__CLASS__ . '::' . __FUNCTION__ . '&nbsp;:</br>' . __('Erreur lors de la vérification de la commande.', __FILE__));
