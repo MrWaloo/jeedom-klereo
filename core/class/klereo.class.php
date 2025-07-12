@@ -187,7 +187,7 @@ class klereo extends eqLogic {
     if (!is_array($body) || !isset($body['status'])) {
       throw new Exception(__CLASS__ . '::' . $_function_name . '&nbsp;:</br>' . __('Réponse inattendue&nbsp;: ', __FILE__) . $body);
     }
-    if (isset($body['status']) && stripos($body['status'], 'error') && isset($body['detail']) && stripos($body['detail'], 'maintenance')) {
+    if (isset($body['status']) && stripos($body['status'], 'error') !== false && isset($body['detail']) && stripos($body['detail'], 'maintenance') !== false) {
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . $_function_name . ' / ' . __("Maintenance en cours", __FILE__));
       return [null, null];
     }
@@ -213,10 +213,10 @@ class klereo extends eqLogic {
         CURLOPT_POSTFIELDS  => $post_data
       ];
       [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
-      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("header = *'%s'*", $header));
+      log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("header = *'%s'*", var_export($header, true)));
       log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body = *'%s'*", var_export($body, true)));
 
-      if (is_null($body) || is_null($header)) {
+      if (is_null($header) || is_null($body) || $header == '' || $body == '') {
         return false;
 
       } elseif (isset($body['jwt'])) {
@@ -249,7 +249,7 @@ class klereo extends eqLogic {
         ]
       ];
       [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
-      if (is_null($body) || is_null($header)) {
+      if (is_null($header) || is_null($body) || $header == '' || $body == '') {
         return false;
 
       } elseif (isset($body['response']) && is_array($body['response'])) {
@@ -1045,7 +1045,7 @@ class klereo extends eqLogic {
         CURLOPT_POSTFIELDS  => $post_data
       ];
       [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
-      if (is_null($body) || is_null($header)) {
+      if (is_null($header) || is_null($body) || $header == '' || $body == '') {
         return false;
 
       } elseif (isset($body['response']) && is_array($body['response'])) {
@@ -1220,8 +1220,8 @@ class klereo extends eqLogic {
     ];
     [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body = '%s'", var_export($body, true)));
-    
-    if (is_null($body) || is_null($header)) {
+
+    if (is_null($body) || is_null($header) || $header == '' || $body == '') {
       return false;
 
     } elseif (isset($body['status']) && $body['status'] === 'ok' && isset($body['response']) && is_array($body['response'])) {
@@ -1263,8 +1263,8 @@ class klereo extends eqLogic {
     ];
     [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body = '%s'", var_export($body, true)));
-    
-    if (is_null($body) || is_null($header)) {
+
+    if (is_null($body) || is_null($header) || $header == '' || $body == '') {
       return false;
 
     } elseif (isset($body['status']) && $body['status'] === 'ok' && isset($body['response']) && is_array($body['response'])) {
@@ -1306,8 +1306,8 @@ class klereo extends eqLogic {
     ];
     [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body = '%s'", var_export($body, true)));
-    
-    if (is_null($body) || is_null($header)) {
+
+    if (is_null($body) || is_null($header) || $header == '' || $body == '') {
       return false;
       
     } elseif (isset($body['status']) && $body['status'] === 'ok' && isset($body['response']) && is_array($body['response'])) {
@@ -1340,8 +1340,8 @@ class klereo extends eqLogic {
     ];
     [$header, $body] = self::curl_request($curl_setopt_array, __FUNCTION__);
     log::add(__CLASS__, 'debug', __CLASS__ . '::' . __FUNCTION__ . ' / ' . sprintf("body = '%s'", var_export($body, true)));
-    
-    if (is_null($body) || is_null($header)) {
+
+    if (is_null($body) || is_null($header) || $header == '' || $body == '') {
       return false;
       
     } elseif (isset($body['response']) && is_array($body['response']) && isset($body['response']['status'])) {
