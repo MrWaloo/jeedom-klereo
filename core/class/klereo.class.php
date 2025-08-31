@@ -34,8 +34,8 @@ class klereo extends eqLogic {
   */
   public static $_encryptConfigKey = ['login', 'password'];
 
-  public static $_version = '1.0.3 stable';
-  
+  public static $_version = '1.0.4 bêta';
+
   static $_WEB_VERSION = '393-J';
   static $_API_ROOT = 'https://connect.klereo.fr/php/';
   static $_USER_AGENT = 'Jeedom plugin';
@@ -1105,7 +1105,7 @@ class klereo extends eqLogic {
   function getProbesInfos() {
     $eqPoolId = $this->getConfiguration('eqPoolId', '');
     $getPools = self::getPools();
-    if ($eqPoolId === '' || $getPools === false || self::maintenance_ongoing()) {
+    if ($eqPoolId === '' || $getPools === false || empty($getPools) || self::maintenance_ongoing()) {
       return null;
     }
     if (!array_key_exists($eqPoolId, $getPools)) {
